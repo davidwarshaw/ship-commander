@@ -1,0 +1,2 @@
+"""Ship Commander core modules."""
+
