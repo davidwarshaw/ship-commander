@@ -4,6 +4,9 @@ import { PlanningSettings, TurnInput } from "../core/types";
 
 type LogEntry = { id: string; text: string };
 type ViewMode = "tactical" | "status";
+type ShipPosition = { x: number; y: number; z: number };
+type TacticalCameraOrbit = { azimuth: number; polar: number; radius: number };
+type StatusCameraOrbit = { azimuth: number; polar: number; radius: number };
 
 type CommanderState = {
   sessionTabId: string;
@@ -17,6 +20,14 @@ type CommanderState = {
   projectionSnapshotTick: number;
   staleProjection: boolean;
   renderFramesDropped: number;
+  activeSystemId: string;
+  shipName: string;
+  shipPosition: ShipPosition;
+  shipTrail: ShipPosition[];
+  tacticalCameraOrbit: TacticalCameraOrbit;
+  statusCameraOrbit: StatusCameraOrbit;
+  shipHeadingRadians: number;
+  shipSpeed: number;
   llmSettings: PlanningSettings;
   apiKeyInput: string;
   apiKeyEdited: boolean;
@@ -31,10 +42,16 @@ type CommanderState = {
   saveLLMSettings: () => void;
   submitCommand: (commandText: string) => Promise<void>;
   reportDroppedRenderFrame: () => void;
+  setTacticalCameraOrbit: (orbit: TacticalCameraOrbit) => void;
+  resetTacticalCameraOrbit: () => void;
+  setStatusCameraOrbit: (orbit: StatusCameraOrbit) => void;
+  resetStatusCameraOrbit: () => void;
 };
 
 const SESSION_LOCK_KEY = "ship-commander.session.lock-owner";
 const LLM_SETTINGS_KEY = "ship-commander.llm.settings";
+const DEFAULT_TACTICAL_CAMERA_ORBIT: TacticalCameraOrbit = { azimuth: 0, polar: 0.24, radius: 7.5 };
+const DEFAULT_STATUS_CAMERA_ORBIT: StatusCameraOrbit = { azimuth: Math.PI / 2, polar: Math.PI / 2, radius: 7 };
 const DEFAULT_LLM_SETTINGS: PlanningSettings = {
   providerId: "mock-local",
   apiKey: "local-dev-key",
@@ -96,6 +113,18 @@ export const useCommanderStore = create<CommanderState>((set, get) => ({
   projectionSnapshotTick: 0,
   staleProjection: false,
   renderFramesDropped: 0,
+  activeSystemId: "sol",
+  shipName: "SCV Aegis",
+  shipPosition: { x: 0, y: 0, z: -4 },
+  shipTrail: [
+    { x: -0.72, y: -0.1, z: -4.34 },
+    { x: -0.36, y: -0.05, z: -4.17 },
+    { x: 0, y: 0, z: -4 }
+  ],
+  tacticalCameraOrbit: { ...DEFAULT_TACTICAL_CAMERA_ORBIT },
+  statusCameraOrbit: { ...DEFAULT_STATUS_CAMERA_ORBIT },
+  shipHeadingRadians: 0.45,
+  shipSpeed: 0.24,
   llmSettings: { ...DEFAULT_LLM_SETTINGS },
   apiKeyInput: "",
   apiKeyEdited: false,
@@ -262,6 +291,19 @@ export const useCommanderStore = create<CommanderState>((set, get) => ({
     };
     const turnOutput = await processTurnTS(turnInput, state.systemStatus);
     set((state) => ({
+      shipPosition: {
+        x: state.shipPosition.x + Math.cos(state.shipHeadingRadians) * state.shipSpeed,
+        y: Math.sin((state.simTick + 1) * 0.1) * 0.35,
+        z: state.shipPosition.z + Math.sin(state.shipHeadingRadians) * state.shipSpeed
+      },
+      shipTrail: [
+        ...state.shipTrail,
+        {
+          x: state.shipPosition.x + Math.cos(state.shipHeadingRadians) * state.shipSpeed,
+          y: Math.sin((state.simTick + 1) * 0.1) * 0.35,
+          z: state.shipPosition.z + Math.sin(state.shipHeadingRadians) * state.shipSpeed
+        }
+      ].slice(-120),
       commandLog: [
         ...state.commandLog,
         { id: `${now}-captain`, text: `Captain: ${trimmed}` },
@@ -276,5 +318,33 @@ export const useCommanderStore = create<CommanderState>((set, get) => ({
   },
   reportDroppedRenderFrame: () => {
     set((state) => ({ renderFramesDropped: state.renderFramesDropped + 1 }));
+  },
+  setTacticalCameraOrbit: (orbit) => {
+    set({
+      tacticalCameraOrbit: {
+        azimuth: orbit.azimuth,
+        polar: Math.min(Math.max(orbit.polar, 0.2), Math.PI - 0.2),
+        radius: Math.min(Math.max(orbit.radius, 6), 48)
+      }
+    });
+  },
+  resetTacticalCameraOrbit: () => {
+    set({
+      tacticalCameraOrbit: { ...DEFAULT_TACTICAL_CAMERA_ORBIT }
+    });
+  },
+  setStatusCameraOrbit: (orbit) => {
+    set({
+      statusCameraOrbit: {
+        azimuth: orbit.azimuth,
+        polar: Math.min(Math.max(orbit.polar, 0.2), Math.PI - 0.2),
+        radius: Math.min(Math.max(orbit.radius, 5), 30)
+      }
+    });
+  },
+  resetStatusCameraOrbit: () => {
+    set({
+      statusCameraOrbit: { ...DEFAULT_STATUS_CAMERA_ORBIT }
+    });
   }
 }));

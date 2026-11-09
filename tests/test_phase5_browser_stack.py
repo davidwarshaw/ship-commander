@@ -37,7 +37,7 @@ class TestPhase5BrowserStack(unittest.TestCase):
         self.assertIn("@emotion/react", deps)
         self.assertIn("vite-tsconfig-paths", deps)
 
-    # @spec PRESENT-CHAKRA-003, PRESENT-CHAKRA-004
+    # @spec PRESENT-CHAKRA-003, PRESENT-CHAKRA-004, PRESENT-BIND-007, PRESENT-BIND-008
     def test_tsconfig_and_vite_include_alias_path_sync(self) -> None:
         tsconfig = json.loads((REPO_ROOT / "tsconfig.json").read_text())
         compiler_options = tsconfig.get("compilerOptions", {})
@@ -50,6 +50,10 @@ class TestPhase5BrowserStack(unittest.TestCase):
         vite_source = (REPO_ROOT / "vite.config.ts").read_text()
         self.assertIn("vite-tsconfig-paths", vite_source)
         self.assertIn("tsconfigPaths()", vite_source)
+        self.assertIn("server", vite_source)
+        self.assertIn("host: true", vite_source)
+        self.assertIn("port: 5156", vite_source)
+        self.assertIn("strictPort: true", vite_source)
 
     # @spec PRESENT-CHAKRA-001, PRESENT-CHAKRA-002
     def test_root_uses_provider_wrapper(self) -> None:
@@ -59,14 +63,31 @@ class TestPhase5BrowserStack(unittest.TestCase):
         self.assertIn("<Provider>", main_source)
         self.assertIn("ChakraProvider", provider_source)
 
-    # @spec PRESENT-CHAKRA-006, PRESENT-SET-001
+    # @spec PRESENT-CHAKRA-006, PRESENT-CHAKRA-008, PRESENT-CHAKRA-009, PRESENT-SET-001
     def test_app_uses_chakra_control_primitives(self) -> None:
         app_source = (REPO_ROOT / "web" / "src" / "App.tsx").read_text()
         self.assertIn("@chakra-ui/react", app_source)
+        self.assertIn("Box", app_source)
+        self.assertIn("Heading", app_source)
+        self.assertIn("List.Root", app_source)
+        self.assertIn("Text", app_source)
         self.assertIn("Button", app_source)
         self.assertIn("Input", app_source)
         self.assertIn("NativeSelect", app_source)
         self.assertNotIn("<Select", app_source)
+        self.assertNotIn("<aside", app_source)
+        self.assertNotIn("<main", app_source)
+        self.assertNotIn("<h2", app_source)
+        self.assertNotIn("<ul", app_source)
+        self.assertNotIn("<li", app_source)
+        self.assertNotIn("<form", app_source)
+
+    # @spec PRESENT-LOG-006, PRESENT-CHAKRA-008
+    def test_crew_tag_uses_chakra_typography(self) -> None:
+        crew_tag_source = (REPO_ROOT / "web" / "src" / "components" / "CrewTag.tsx").read_text()
+        self.assertIn("@chakra-ui/react", crew_tag_source)
+        self.assertIn("Text", crew_tag_source)
+        self.assertNotIn("<span", crew_tag_source)
 
     # @spec CREWCMD-CORE-006, SIMEXEC-DET-004
     def test_browser_runtime_source_files_exist(self) -> None:
@@ -99,13 +120,76 @@ class TestPhase5BrowserStack(unittest.TestCase):
         self.assertIn("simTick", tactical_source)
         self.assertIn("reportDroppedRenderFrame", tactical_source)
 
-    # @spec PRESENT-MODE-001, PRESENT-MODE-005
-    def test_app_includes_mode_toggle_and_projection_state(self) -> None:
+    # @spec PRESENT-LOG-004, PRESENT-LOG-005, PRESENT-MODE-001
+    def test_app_renders_left_pane_sections_in_required_order(self) -> None:
+        app_source = (REPO_ROOT / "web" / "src" / "App.tsx").read_text()
+        self.assertIn("Settings", app_source)
+        self.assertIn("Simulation time", app_source)
+        self.assertIn("Bridge Crew", app_source)
+        self.assertIn("Command Log", app_source)
+        self.assertIn("Captain command", app_source)
+
+        settings_index = app_source.find("Settings")
+        sim_time_index = app_source.find("Simulation time")
+        bridge_crew_index = app_source.find("Bridge Crew")
+        command_log_index = app_source.find("Command Log")
+        command_input_index = app_source.find("Captain command")
+
+        self.assertLess(settings_index, sim_time_index)
+        self.assertLess(sim_time_index, bridge_crew_index)
+        self.assertLess(bridge_crew_index, command_log_index)
+        self.assertLess(command_log_index, command_input_index)
+
+    # @spec PRESENT-MODE-001
+    def test_app_includes_mode_toggle_controls(self) -> None:
         app_source = (REPO_ROOT / "web" / "src" / "App.tsx").read_text()
         self.assertIn("setViewMode", app_source)
-        self.assertIn("Projection tick", app_source)
-        self.assertIn("Stale projection", app_source)
-        self.assertIn("Simulation time", app_source)
+        self.assertIn("Tactical", app_source)
+        self.assertIn("Status", app_source)
+        self.assertIn("view-mode-toggle", app_source)
+
+    # @spec PRESENT-BIND-009, PRESENT-LOG-005, PRESENT-BIND-010
+    def test_bridge_crew_catalog_and_json_shape(self) -> None:
+        catalog_source = (REPO_ROOT / "web" / "src" / "crew" / "crewCatalog.ts").read_text()
+        self.assertIn("bridge-crew.json", catalog_source)
+        self.assertIn("name", catalog_source)
+        self.assertIn("rank", catalog_source)
+        self.assertIn("position", catalog_source)
+        self.assertIn("dialogHandles", catalog_source)
+        self.assertIn("resolveCrewMemberBySpeakerToken", catalog_source)
+        self.assertIn("getBridgeCrewDefinition", catalog_source)
+
+        crew_sample_path = REPO_ROOT / "web" / "src" / "data" / "crew" / "bridge-crew.json"
+        crew_sample = json.loads(crew_sample_path.read_text())
+        self.assertIn("crew", crew_sample)
+        self.assertGreaterEqual(len(crew_sample["crew"]), 1)
+        self.assertIn("name", crew_sample["crew"][0])
+        self.assertIn("rank", crew_sample["crew"][0])
+        self.assertIn("position", crew_sample["crew"][0])
+        self.assertIn("dialogHandles", crew_sample["crew"][0])
+
+    # @spec PRESENT-LOG-006, PRESENT-BIND-010
+    def test_crew_tag_component_and_command_log_usage(self) -> None:
+        app_source = (REPO_ROOT / "web" / "src" / "App.tsx").read_text()
+        crew_tag_source = (REPO_ROOT / "web" / "src" / "components" / "CrewTag.tsx").read_text()
+        self.assertIn("CrewTag", app_source)
+        self.assertIn("resolveCrewMemberBySpeakerToken", app_source)
+        self.assertIn("split", app_source)
+        self.assertIn("Bridge Crew", app_source)
+        self.assertIn("Command Log", app_source)
+
+        self.assertIn("rank", crew_tag_source)
+        self.assertIn("name", crew_tag_source)
+        self.assertIn("position", crew_tag_source)
+        self.assertIn("crew-tag", crew_tag_source)
+
+    # @spec PRESENT-MODE-008
+    def test_mobile_layout_stacks_command_and_projection_vertically(self) -> None:
+        styles_source = (REPO_ROOT / "web" / "src" / "styles.css").read_text()
+        self.assertIn("@media (max-width: 900px)", styles_source)
+        self.assertIn(".app-shell", styles_source)
+        self.assertIn("grid-template-columns: 1fr;", styles_source)
+        self.assertIn("grid-template-rows: auto 1fr;", styles_source)
 
     # @spec LLMGEN-PROV-001, LLMGEN-PROV-005
     def test_llm_provider_adapter_module_exists(self) -> None:
@@ -182,6 +266,117 @@ class TestPhase5BrowserStack(unittest.TestCase):
         self.assertIn("unsaved", store_source)
         self.assertIn("storage", store_source)
         self.assertIn("planningSettings", store_source)
+
+    # @spec PRESENT-PROJ-006, PRESENT-PROJ-010, PRESENT-PROJ-011
+    def test_local_solar_system_json_catalog_exists_with_required_fields(self) -> None:
+        catalog_dir = REPO_ROOT / "web" / "src" / "data" / "solar-systems"
+        self.assertTrue(catalog_dir.exists(), "Expected local solar-system catalog directory.")
+        self.assertTrue(catalog_dir.is_dir(), "Solar-system catalog path must be a directory.")
+        system_files = sorted(catalog_dir.glob("*.json"))
+        self.assertGreater(len(system_files), 0, "Expected at least one solar-system definition JSON file.")
+
+        sample = json.loads(system_files[0].read_text())
+        self.assertIn("id", sample)
+        self.assertIn("name", sample)
+        self.assertIn("handedness", sample)
+        self.assertIn(sample["handedness"], ("clockwise", "counterclockwise"))
+        self.assertIn("star", sample)
+        self.assertIn("planets", sample)
+        self.assertIn("name", sample["star"])
+        self.assertIn("size", sample["star"])
+        self.assertIsInstance(sample["planets"], list)
+        self.assertGreater(len(sample["planets"]), 0)
+        planet = sample["planets"][0]
+        self.assertIn("name", planet)
+        self.assertIn("size", planet)
+        self.assertIn("type", planet)
+        self.assertIn("orbit", planet)
+        self.assertIn("radiusX", planet["orbit"])
+        self.assertIn("radiusY", planet["orbit"])
+
+    # @spec PRESENT-PROJ-024, PRESENT-PROJ-025, PRESENT-PROJ-026, PRESENT-PROJ-027, PRESENT-PROJ-028
+    def test_local_ship_json_catalog_exists_with_required_fields(self) -> None:
+        catalog_dir = REPO_ROOT / "web" / "src" / "data" / "ships"
+        self.assertTrue(catalog_dir.exists(), "Expected local ship catalog directory.")
+        self.assertTrue(catalog_dir.is_dir(), "Ship catalog path must be a directory.")
+        ship_files = sorted(catalog_dir.glob("*.json"))
+        self.assertGreater(len(ship_files), 0, "Expected at least one ship definition JSON file.")
+
+        sample = json.loads(ship_files[0].read_text())
+        self.assertIn("id", sample)
+        self.assertIn("name", sample)
+        self.assertIn("size", sample)
+        self.assertIn("maxSpeed", sample)
+        self.assertIn("armament", sample)
+        self.assertIn("crewSize", sample)
+        self.assertIn("launchableVessels", sample)
+        self.assertIn("wireframe", sample)
+        self.assertIn("importantPoints", sample)
+        self.assertIn("vertices", sample["wireframe"])
+        self.assertIn("edges", sample["wireframe"])
+
+    # @spec PRESENT-PROJ-007, PRESENT-PROJ-008, PRESENT-PROJ-009, PRESENT-PROJ-012, PRESENT-PROJ-014, PRESENT-PROJ-015, PRESENT-PROJ-016, PRESENT-PROJ-017, PRESENT-PROJ-019, PRESENT-PROJ-021, PRESENT-PROJ-022, PRESENT-PROJ-023, PRESENT-PROJ-031, PRESENT-PROJ-033, PRESENT-MODE-006, PRESENT-MODE-007
+    def test_tactical_canvas_renders_ship_vector_orbits_and_camera_controls(self) -> None:
+        tactical_source = (REPO_ROOT / "web" / "src" / "tactical" / "TacticalCanvas.tsx").read_text()
+        self.assertIn("EllipseCurve", tactical_source)
+        self.assertIn("BufferGeometry", tactical_source)
+        self.assertIn("LineLoop", tactical_source)
+        self.assertIn("ArrowHelper", tactical_source)
+        self.assertIn("SphereGeometry", tactical_source)
+        self.assertIn("shipTrail", tactical_source)
+        self.assertIn("trailLine", tactical_source)
+        self.assertIn("Line(", tactical_source)
+        self.assertIn("wheel", tactical_source)
+        self.assertIn("pointer", tactical_source)
+        self.assertIn("camera", tactical_source)
+        self.assertIn("orbitAzimuth", tactical_source)
+        self.assertIn("orbitPolar", tactical_source)
+        self.assertIn("orbitDistance", tactical_source)
+        self.assertIn("cameraTarget.copy(shipMesh.position)", tactical_source)
+        self.assertIn("setTacticalCameraOrbit", tactical_source)
+        self.assertIn("savedCameraOrbit", tactical_source)
+        self.assertIn("resetTacticalCameraOrbit", tactical_source)
+        self.assertIn("Reset Camera", tactical_source)
+        self.assertIn("tactical-camera-reset", tactical_source)
+        self.assertIn("WebGL context initialization failed", tactical_source)
+
+    # @spec PRESENT-PROJ-024, PRESENT-PROJ-025, PRESENT-PROJ-026, PRESENT-PROJ-028, PRESENT-PROJ-029, PRESENT-PROJ-030, PRESENT-PROJ-032, PRESENT-PROJ-034
+    def test_status_ship_view_renders_wireframe_labels_metadata_and_orbit_controls(self) -> None:
+        app_source = (REPO_ROOT / "web" / "src" / "App.tsx").read_text()
+        status_source = (REPO_ROOT / "web" / "src" / "status" / "StatusShipView.tsx").read_text()
+        self.assertIn("StatusShipView", app_source)
+        self.assertIn("LineSegments", status_source)
+        self.assertIn("BufferGeometry", status_source)
+        self.assertIn("importantPoints", status_source)
+        self.assertIn("size", status_source)
+        self.assertIn("maxSpeed", status_source)
+        self.assertIn("armament", status_source)
+        self.assertIn("crewSize", status_source)
+        self.assertIn("launchableVessels", status_source)
+        self.assertIn("wheel", status_source)
+        self.assertIn("pointer", status_source)
+        self.assertIn("savedCameraOrbit", status_source)
+        self.assertIn("setStatusCameraOrbit", status_source)
+        self.assertIn("resetStatusCameraOrbit", status_source)
+        self.assertIn("Reset Camera", status_source)
+        self.assertIn("status-camera-reset", status_source)
+
+    # @spec PRESENT-PROJ-006, PRESENT-PROJ-007, PRESENT-PROJ-013, PRESENT-PROJ-016, PRESENT-PROJ-017, PRESENT-PROJ-018, PRESENT-PROJ-020, PRESENT-PROJ-031, PRESENT-PROJ-032, PRESENT-MODE-006, PRESENT-MODE-007
+    def test_store_exposes_tactical_projection_state(self) -> None:
+        store_source = (REPO_ROOT / "web" / "src" / "state" / "store.ts").read_text()
+        self.assertIn("activeSystemId", store_source)
+        self.assertIn("shipPosition", store_source)
+        self.assertIn("shipHeadingRadians", store_source)
+        self.assertIn("shipSpeed", store_source)
+        self.assertIn("shipTrail", store_source)
+        self.assertIn("z", store_source)
+        self.assertIn("slice(-", store_source)
+        self.assertIn("tacticalCameraOrbit", store_source)
+        self.assertIn("setTacticalCameraOrbit", store_source)
+        self.assertIn("resetTacticalCameraOrbit", store_source)
+        self.assertIn("statusCameraOrbit", store_source)
+        self.assertIn("setStatusCameraOrbit", store_source)
+        self.assertIn("resetStatusCameraOrbit", store_source)
 
 
 if __name__ == "__main__":

@@ -23,6 +23,8 @@ Iteration 1 implementation targets a browser single-page application:
 - **Three.js**: tactical wireframe scene rendering
 - **Zustand**: shared state boundary for turn output, projection snapshots, focus state, and UI mode
 - **Vite**: development/build pipeline and module runtime
+  - dev server binds to local-network interface (non-loopback host) for LAN/browser-device access
+  - dev server uses fixed port `5156` with strict-port behavior (no auto-port fallback)
 
 ## Scope and Boundaries
 
@@ -80,6 +82,8 @@ Root composition rules:
 - canonical provider wrapper import path is `@/components/ui/provider` and must export `Provider`
 - provider wrapper is imported through path alias mapping used by build and TypeScript configuration
 - if provider module path/export contract is missing, build/start fails explicitly (no fallback provider path)
+- Chakra-first rendering applies across presentation components: use Chakra primitives instead of raw HTML nodes wherever equivalent primitives exist
+- raw HTML nodes are reserved for integration points that require direct DOM/Three.js refs or browser-native APIs without Chakra abstraction
 
 If required command log payload is missing, render operational notice state instead of partial normal output.
 
@@ -97,6 +101,17 @@ Rendering rules:
 - preserve role attribution and reason-code references where provided
 - support deterministic replay rendering from persisted turn output
 - render outcome badges/filters from canonical outcome classification when provided, while retaining `CaptainTurnOutput` section content as primary narrative payload
+- left pane structural order is fixed, top-to-bottom:
+  1. Settings accordion
+  2. simulation time display
+  3. bridge crew list (name, rank, position)
+  4. command log
+  5. captain command input form
+- bridge crew list is sourced from local crew-definition JSON and rendered read-only in command pane
+- bridge crew roster typography uses shared `CrewTag` presentation component (rank, name, position)
+- command log typography uses the same `CrewTag` component for any dialog line whose speaker token resolves to a bridge-crew member
+- command-log speaker resolution uses crew-definition dialog handles and canonical crew fields; unresolved speakers render as plain text line prefixes
+- command input form remains lock-aware and submit behavior remains unchanged while moving to pane-bottom position
 
 ### Stage 3: Tactical and Status Projections
 
@@ -104,10 +119,38 @@ Tactical projection:
 - render local-space wireframe entities from canonical snapshot projection model
 - apply deterministic symbolization/theme constraints for black-and-white aesthetic
 - highlight event-relevant entities referenced in current turn output when available
+- render local solar-system projection using canonical payload fields:
+  - star name and normalized star size
+  - system handedness (`clockwise` or `counterclockwise`)
+  - planet name, size, type, and orbit ellipse radii (`radiusX`, `radiusY`)
+  - ship marker as labeled 3D position with heading/speed vector
+- render tactical projection in a three-dimensional scene (perspective camera with 3D entities)
+- render planetary elliptical orbits as line geometry centered on the star in 3D space
+- render ship historical path as a polyline through prior ship positions in tactical space
+- keep tactical camera centered on current valid ship position while tactical mode is active
+- support tactical orbit and zoom interactions without mutating canonical simulation state:
+  - pointer-drag input orbits camera around ship-centered focal target
+  - wheel zoom changes orbital camera radius only
+- persist tactical camera pose (position/orientation-equivalent orbit state) across mode switches and remounts
+- provide tactical camera reset control in canvas corner that restores default pose:
+  - top-down view relative to ecliptic plane
+  - zoom framing where only the nearest planet is in primary view
 - update Three.js scene graph through adapter functions that consume normalized store slices rather than raw payloads
 
 Status projection:
-- render ship subsystem health/readiness, mission objective state, and crew readiness indicators
+- render orbitable/zoomable 3D wireframe ship view with labeled important points
+- render status metadata from canonical ship definition payload:
+  - ship size/classification
+  - max speed
+  - armament summary
+  - crew size
+  - launchable vessels
+- ship wireframe and status metadata are sourced from the same canonical ship-definition payload
+- persist status camera pose (position/orientation-equivalent orbit state) across mode switches and remounts
+- provide status camera reset control in canvas corner that restores default pose:
+  - right-angle profile to ship hull
+  - bow on left, stern on right
+  - zoom framing where ship almost fills viewport
 - maintain consistent threshold bands and labels across turns
 
 ### Stage 4: Mode Toggle and Shared Interaction State
@@ -115,13 +158,17 @@ Status projection:
 Mode behavior:
 - command log remains visible/primary in all modes per policy
 - toggling between tactical/status views preserves shared focus anchor where representable
+- toggling away from tactical mode and back preserves tactical camera orbit state (azimuth, polar angle, zoom radius)
 - mode switch does not trigger reclassification or recomposition of turn outcomes
 - stale-projection mode toggles remain allowed, with visible stale warning state
+- in narrow/mobile viewports, command panel and active projection view stack vertically with command panel first
 
 Shared interaction state includes:
 - selected entity or subsystem
 - current turn focus index
 - active diagnostics panel state
+- tactical camera orbit state (`azimuth`, `polar`, `radius`) for remount-safe tactical view continuity
+- status camera orbit state (`azimuth`, `polar`, `radius`) for remount-safe status view continuity
 
 ### Stage 5: LLM Settings Controls and Persistence
 
@@ -189,6 +236,38 @@ Accordion defaults:
 
 Focus-anchor mapping rules are shared with simulation/entity taxonomy contract from projection data model; presentation applies mappings but does not define taxonomy semantics.
 
+## Tactical Projection Data Contract
+
+Tactical solar-system visualization consumes a normalized projection model with the following shape:
+
+- `system.id: string`
+- `system.name: string`
+- `system.handedness: "clockwise" | "counterclockwise"`
+- `system.star: { name: string; size: number }`
+- `system.planets: Array<{ name: string; size: number; type: string; orbit: { radiusX: number; radiusY: number } }>`
+- `ship: { name: string; position: { x: number; y: number; z: number }; headingRadians: number; speed: number; trail: Array<{ x: number; y: number; z: number }> }`
+
+Projection-model rules:
+- star and planet size values are normalized render scales, not astrophysical units
+- orbit radii are render-space semi-axis values that define centered ellipses around the star
+- planet payload order determines deterministic draw and label order
+- ship heading and speed determine a velocity vector rendered from ship position
+- ship trail is an ordered oldest-to-newest position series and is rendered as a connected line
+- trail retention is bounded in client state to a fixed history window for stable tactical performance
+- system handedness determines positive angular direction for orbit progression and heading orientation
+- camera orbit state (azimuth, polar angle, orbit radius) is local interaction state and is not part of canonical projection payload
+
+Iteration 1 data-source policy:
+- local solar-system definitions are stored as JSON files under `web/src/data/solar-systems/`
+- each file describes one system and includes star metadata, handedness, and all planet orbit metadata required by this contract
+- tactical projection adapters resolve system JSON by canonical `system.id` and emit explicit unavailable/degraded state when referenced files are missing or malformed
+- local ship definitions for status projection are stored as JSON files under `web/src/data/ships/`
+- each ship definition includes:
+  - wireframe geometry (`vertices` and `edges`)
+  - labeled important points with 3D coordinates
+  - status metadata fields (`size`, `maxSpeed`, `armament`, `crewSize`, `launchableVessels`)
+- status projection adapters resolve ship JSON by canonical ship id and emit explicit unavailable/degraded state when referenced files are missing or malformed
+
 ## Consistency and Freshness Rules
 
 - All visual projections must correspond to the same canonical snapshot associated with displayed turn output.
@@ -204,6 +283,10 @@ Focus-anchor mapping rules are shared with simulation/entity taxonomy contract f
 - telemetry emission failure: do not block captain-visible rendering
 - localStorage settings write failure: preserve current in-memory settings state, render operational notice, and avoid partial writes
 - localStorage settings read failure (security/quota/runtime exception): load defaults into in-memory settings, render settings-read-failure notice, and continue rendering
+- missing/malformed tactical solar-system JSON: preserve command log and status mode, render tactical unavailable/degraded notice, and avoid fabricated star/planet/orbit geometry
+- invalid ship tactical payload (missing heading/speed/position): suppress ship vector, keep other tactical geometry, and render ship-kinematics unavailable notice
+- invalid ship trail payload: suppress trail rendering, keep current ship marker/vector geometry, and render trail-unavailable notice
+- missing/malformed ship-definition JSON for status projection: preserve command log and tactical mode, render status unavailable/degraded notice, and avoid fabricated wireframe/metadata output
 
 No silent substitution of fabricated tactical/status data is allowed.
 
@@ -222,6 +305,7 @@ Runtime configuration includes:
 - Vite tsconfig-path sync plugin for alias resolution in bundler/runtime
 - alias mapping for TypeScript and Vite must resolve to the same source roots; mismatches are treated as configuration errors
 - Vite path-sync plugin is required in plugin chain and is validated by build-time import resolution checks
+- tactical camera policy (pan bounds, min/max zoom, default framing)
 
 Configuration changes rendering behavior, not authoritative turn/simulation semantics.
 

@@ -1,0 +1,56 @@
+{
+  "id": "sol",
+  "name": "Sol",
+  "handedness": "counterclockwise",
+  "star": {
+    "name": "Sun",
+    "size": 1.2
+  },
+  "planets": [
+    {
+      "name": "Mercury",
+      "size": 0.18,
+      "type": "terrestrial",
+      "orbit": {
+        "radiusX": 1.8,
+        "radiusY": 1.5
+      }
+    },
+    {
+      "name": "Venus",
+      "size": 0.24,
+      "type": "terrestrial",
+      "orbit": {
+        "radiusX": 2.7,
+        "radiusY": 2.2
+      }
+    },
+    {
+      "name": "Earth",
+      "size": 0.26,
+      "type": "terrestrial",
+      "orbit": {
+        "radiusX": 3.8,
+        "radiusY": 3.3
+      }
+    },
+    {
+      "name": "Mars",
+      "size": 0.22,
+      "type": "terrestrial",
+      "orbit": {
+        "radiusX": 4.7,
+        "radiusY": 4.1
+      }
+    },
+    {
+      "name": "Jupiter",
+      "size": 0.58,
+      "type": "gas-giant",
+      "orbit": {
+        "radiusX": 6.3,
+        "radiusY": 5.6
+      }
+    }
+  ]
+}

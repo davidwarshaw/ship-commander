@@ -40,6 +40,11 @@ body {
   margin-bottom: 8px;
 }
 
+.crew-tag {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 .action-btn {
   border: 1px solid #666;
   background: #111;
@@ -77,6 +82,12 @@ body {
   margin: 10px 0 6px;
 }
 
+.view-mode-toggle {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px 6px;
+}
+
 .warning-pill {
   display: inline-block;
   margin-left: 8px;
@@ -92,6 +103,14 @@ body {
 .tactical-panel {
   min-width: 0;
   min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.tactical-canvas-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .tactical-canvas {
@@ -99,6 +118,97 @@ body {
   height: 100%;
 }
 
+.tactical-notice {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid #505050;
+  color: #ffbf66;
+  padding: 6px 10px;
+  display: none;
+  font-size: 0.9rem;
+}
+
+.camera-reset-button {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  border: 1px solid #505050;
+  background: rgba(0, 0, 0, 0.75);
+  color: #f2f2f2;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
 .status-mode {
   padding: 16px;
+}
+
+.status-ship-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.status-ship-canvas-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.status-ship-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.status-ship-metadata {
+  border-left: 1px solid #2f2f2f;
+  padding-left: 12px;
+  overflow: auto;
+}
+
+.status-ship-metadata h2 {
+  margin-top: 0;
+}
+
+.status-ship-metadata ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.status-ship-metadata li {
+  margin-bottom: 6px;
+}
+
+.command-form-bottom {
+  margin-top: 14px;
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .command-panel {
+    border-right: 0;
+    border-bottom: 1px solid #333;
+  }
+
+  .status-ship-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(280px, 1fr) auto;
+  }
+
+  .status-ship-metadata {
+    border-left: 0;
+    border-top: 1px solid #2f2f2f;
+    padding-left: 0;
+    padding-top: 12px;
+  }
 }

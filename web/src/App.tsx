@@ -1,34 +1,30 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Accordion, Button, HStack, Input, NativeSelect, Text, VStack } from "@chakra-ui/react";
+import { Accordion, Box, Button, HStack, Heading, Input, List, NativeSelect, Text, VStack } from "@chakra-ui/react";
 import { TacticalCanvas } from "./tactical/TacticalCanvas";
+import { StatusShipView } from "./status/StatusShipView";
 import { useCommanderStore } from "./state/store";
+import { CrewTag } from "./components/CrewTag";
+import { getBridgeCrewDefinition, resolveCrewMemberBySpeakerToken } from "./crew/crewCatalog";
 
-// @spec PRESENT-CHAKRA-006, PRESENT-SET-001
+// @spec PRESENT-CHAKRA-006, PRESENT-CHAKRA-008, PRESENT-CHAKRA-009, PRESENT-SET-001, PRESENT-BIND-009, PRESENT-BIND-010, PRESENT-LOG-004, PRESENT-LOG-005, PRESENT-LOG-006
 export function App() {
   const [commandDraft, setCommandDraft] = useState("");
-  const sessionTabId = useCommanderStore((s) => s.sessionTabId);
-  const lockOwnerTabId = useCommanderStore((s) => s.lockOwnerTabId);
   const isLockOwner = useCommanderStore((s) => s.isLockOwner);
   const viewMode = useCommanderStore((s) => s.viewMode);
   const commandLog = useCommanderStore((s) => s.commandLog);
-  const systemStatus = useCommanderStore((s) => s.systemStatus);
-  const simTick = useCommanderStore((s) => s.simTick);
   const simulationTimeMinutes = useCommanderStore((s) => s.simulationTimeMinutes);
-  const projectionSnapshotTick = useCommanderStore((s) => s.projectionSnapshotTick);
-  const staleProjection = useCommanderStore((s) => s.staleProjection);
-  const droppedFrames = useCommanderStore((s) => s.renderFramesDropped);
   const llmSettings = useCommanderStore((s) => s.llmSettings);
   const apiKeyInput = useCommanderStore((s) => s.apiKeyInput);
   const settingsNotice = useCommanderStore((s) => s.settingsNotice);
   const unsavedLLMSettings = useCommanderStore((s) => s.unsavedLLMSettings);
   const initializeSessionLock = useCommanderStore((s) => s.initializeSessionLock);
-  const claimWriterLock = useCommanderStore((s) => s.claimWriterLock);
   const setViewMode = useCommanderStore((s) => s.setViewMode);
   const setLLMProvider = useCommanderStore((s) => s.setLLMProvider);
   const setLLMModel = useCommanderStore((s) => s.setLLMModel);
   const setLLMApiKeyInput = useCommanderStore((s) => s.setLLMApiKeyInput);
   const saveLLMSettings = useCommanderStore((s) => s.saveLLMSettings);
   const submitCommand = useCommanderStore((s) => s.submitCommand);
+  const bridgeCrew = getBridgeCrewDefinition("bridge-crew");
 
   useEffect(() => {
     initializeSessionLock();
@@ -52,49 +48,8 @@ export function App() {
         : [];
 
   return (
-    <div className="app-shell">
-      <aside className="command-panel">
-        <h1>Ship Commander</h1>
-        <p>
-          Session tab: <code>{sessionTabId}</code>
-        </p>
-        <p>
-          Lock owner: <code>{lockOwnerTabId ?? "none"}</code> {isLockOwner ? "(writer)" : "(read-only)"}
-        </p>
-        <p>
-          Sim tick: <strong>{simTick}</strong> • Dropped render frames: <strong>{droppedFrames}</strong>
-        </p>
-        <p>
-          Simulation time:{" "}
-          <strong>
-            {hours}:{minutes}
-          </strong>
-        </p>
-        <p>
-          Projection tick: <strong>{projectionSnapshotTick}</strong>{" "}
-          {staleProjection ? <span className="warning-pill">Stale projection</span> : <span className="ok-pill">Synced</span>}
-        </p>
-        {!isLockOwner ? (
-          <Button className="action-btn" onClick={claimWriterLock}>
-            Claim writer lock
-          </Button>
-        ) : null}
-        <form className="command-form" onSubmit={onSubmitCommand}>
-          <Text as="label" htmlFor="command-input">
-            Captain command
-          </Text>
-          <HStack className="command-form-row">
-            <Input
-              id="command-input"
-              value={commandDraft}
-              onChange={(e) => setCommandDraft(e.target.value)}
-              placeholder={isLockOwner ? "Issue a command..." : "Read-only tab"}
-            />
-            <Button type="submit" className="action-btn">
-              Send
-            </Button>
-          </HStack>
-        </form>
+    <Box className="app-shell">
+      <Box as="aside" className="command-panel">
         <Accordion.Root collapsible defaultValue={[]} className="command-form">
           <Accordion.Item value="settings">
             <Accordion.ItemTrigger>
@@ -105,9 +60,11 @@ export function App() {
               <Accordion.ItemBody>
                 <VStack align="stretch">
                   {settingsNotice ? (
-                    <p>
-                      <span className="warning-pill">{settingsNotice}</span>
-                    </p>
+                    <Text>
+                      <Text as="span" className="warning-pill">
+                        {settingsNotice}
+                      </Text>
+                    </Text>
                   ) : null}
                   <Text as="label" htmlFor="provider-select">
                     LLM Provider
@@ -146,13 +103,73 @@ export function App() {
                   <Button className="action-btn" type="button" onClick={saveLLMSettings} disabled={!isLockOwner}>
                     Save settings
                   </Button>
-                  {unsavedLLMSettings ? <p>LLM settings draft is unsaved.</p> : null}
+                  {unsavedLLMSettings ? <Text>LLM settings draft is unsaved.</Text> : null}
                 </VStack>
               </Accordion.ItemBody>
             </Accordion.ItemContent>
           </Accordion.Item>
         </Accordion.Root>
-        <div className="mode-toggle">
+        <Text className="simulation-time">
+          Simulation time:{" "}
+          <Text as="strong">
+            {hours}:{minutes}
+          </Text>
+        </Text>
+        <Heading as="h2" size="md">
+          Bridge Crew
+        </Heading>
+        <List.Root className="command-list">
+          {bridgeCrew ? (
+            bridgeCrew.crew.map((member) => (
+              <List.Item key={member.name}>
+                <CrewTag member={member} />
+              </List.Item>
+            ))
+          ) : (
+            <List.Item>Bridge crew unavailable.</List.Item>
+          )}
+        </List.Root>
+        <Heading as="h2" size="md">
+          Command Log
+        </Heading>
+        <List.Root className="command-list">
+          {commandLog.map((line) => {
+            const [rawSpeaker, ...messageParts] = line.text.split(":");
+            const hasSpeakerToken = messageParts.length > 0;
+            if (!bridgeCrew || !hasSpeakerToken) {
+              return <List.Item key={line.id}>{line.text}</List.Item>;
+            }
+            const member = resolveCrewMemberBySpeakerToken(bridgeCrew, rawSpeaker);
+            if (!member) {
+              return <List.Item key={line.id}>{line.text}</List.Item>;
+            }
+            const message = messageParts.join(":").trim();
+            return (
+              <List.Item key={line.id}>
+                <CrewTag member={member} />: {message}
+              </List.Item>
+            );
+          })}
+        </List.Root>
+        <Box as="form" className="command-form command-form-bottom" onSubmit={onSubmitCommand}>
+          <Text as="label" htmlFor="command-input">
+            Captain command
+          </Text>
+          <HStack className="command-form-row">
+            <Input
+              id="command-input"
+              value={commandDraft}
+              onChange={(e) => setCommandDraft(e.target.value)}
+              placeholder={isLockOwner ? "Issue a command..." : "Read-only tab"}
+            />
+            <Button type="submit" className="action-btn">
+              Send
+            </Button>
+          </HStack>
+        </Box>
+      </Box>
+      <Box as="main" className="tactical-panel">
+        <HStack className="view-mode-toggle">
           <Button
             className={viewMode === "tactical" ? "action-btn selected" : "action-btn"}
             onClick={() => setViewMode("tactical")}
@@ -165,38 +182,13 @@ export function App() {
           >
             Status
           </Button>
-        </div>
-        <h2>Command Log</h2>
-        <ul>
-          {commandLog.map((line) => (
-            <li key={line.id}>{line.text}</li>
-          ))}
-        </ul>
-        <h2>Systems</h2>
-        <ul>
-          {Object.entries(systemStatus).map(([name, value]) => (
-            <li key={name}>
-              {name}: {value}
-            </li>
-          ))}
-        </ul>
-      </aside>
-      <main className="tactical-panel">
+        </HStack>
         {viewMode === "tactical" ? (
           <TacticalCanvas />
         ) : (
-          <div className="status-mode">
-            <h2>Systems / Status View</h2>
-            <ul>
-              {Object.entries(systemStatus).map(([name, value]) => (
-                <li key={name}>
-                  {name}: {value}
-                </li>
-              ))}
-            </ul>
-          </div>
+          <StatusShipView />
         )}
-      </main>
-    </div>
+      </Box>
+    </Box>
   );
 }

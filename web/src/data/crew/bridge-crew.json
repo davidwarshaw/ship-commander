@@ -1,0 +1,35 @@
+{
+  "id": "bridge-crew",
+  "crew": [
+    {
+      "name": "Elara Voss",
+      "rank": "Captain",
+      "position": "Commanding Officer",
+      "dialogHandles": ["Captain", "Elara", "CO"]
+    },
+    {
+      "name": "Kade Thorne",
+      "rank": "Commander",
+      "position": "Executive Officer",
+      "dialogHandles": ["XO", "Executive", "Kade"]
+    },
+    {
+      "name": "Mira Chen",
+      "rank": "Lieutenant Commander",
+      "position": "Operations Officer",
+      "dialogHandles": ["Ops", "Operations", "Mira"]
+    },
+    {
+      "name": "Arjun Hale",
+      "rank": "Lieutenant",
+      "position": "Helm Officer",
+      "dialogHandles": ["Helm", "Arjun"]
+    },
+    {
+      "name": "Rhea Okafor",
+      "rank": "Lieutenant",
+      "position": "Chief Engineer",
+      "dialogHandles": ["Engineer", "Engineering", "Rhea"]
+    }
+  ]
+}
