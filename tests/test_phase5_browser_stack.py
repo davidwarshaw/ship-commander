@@ -37,7 +37,7 @@ class TestPhase5BrowserStack(unittest.TestCase):
         self.assertIn("@emotion/react", deps)
         self.assertIn("vite-tsconfig-paths", deps)
 
-    # @spec PRESENT-CHAKRA-003, PRESENT-CHAKRA-004, PRESENT-BIND-007, PRESENT-BIND-008
+    # @spec PRESENT-CHAKRA-003, PRESENT-CHAKRA-004, PRESENT-BIND-007, PRESENT-BIND-008, PRESENT-BIND-011
     def test_tsconfig_and_vite_include_alias_path_sync(self) -> None:
         tsconfig = json.loads((REPO_ROOT / "tsconfig.json").read_text())
         compiler_options = tsconfig.get("compilerOptions", {})
@@ -54,16 +54,36 @@ class TestPhase5BrowserStack(unittest.TestCase):
         self.assertIn("host: true", vite_source)
         self.assertIn("port: 5156", vite_source)
         self.assertIn("strictPort: true", vite_source)
+        self.assertIn("VITE_BASE_PATH", vite_source)
+        self.assertIn("base:", vite_source)
 
-    # @spec PRESENT-CHAKRA-001, PRESENT-CHAKRA-002
+    # @spec PRESENT-BIND-012
+    def test_github_pages_workflow_exists_and_deploys_dist(self) -> None:
+        workflow_path = REPO_ROOT / ".github" / "workflows" / "deploy-pages.yml"
+        self.assertTrue(workflow_path.exists(), "Expected GitHub Pages deployment workflow.")
+        workflow_source = workflow_path.read_text()
+        self.assertIn("actions/configure-pages", workflow_source)
+        self.assertIn("actions/upload-pages-artifact", workflow_source)
+        self.assertIn("actions/deploy-pages", workflow_source)
+        self.assertIn("dist", workflow_source)
+        self.assertIn("VITE_BASE_PATH", workflow_source)
+        self.assertIn("/ship-commander/", workflow_source)
+
+    # @spec PRESENT-CHAKRA-001, PRESENT-CHAKRA-002, PRESENT-CHAKRA-010
     def test_root_uses_provider_wrapper(self) -> None:
         main_source = (REPO_ROOT / "web" / "src" / "main.tsx").read_text()
         provider_source = (REPO_ROOT / "web" / "src" / "components" / "ui" / "provider.tsx").read_text()
+        system_source = (REPO_ROOT / "web" / "src" / "components" / "ui" / "system.ts").read_text()
         self.assertIn('from "@/components/ui/provider"', main_source)
         self.assertIn("<Provider>", main_source)
         self.assertIn("ChakraProvider", provider_source)
+        self.assertIn("shipCommanderSystem", provider_source)
+        self.assertIn("textStyles", system_source)
+        self.assertIn("body", system_source)
+        self.assertIn("caption", system_source)
+        self.assertIn("header", system_source)
 
-    # @spec PRESENT-CHAKRA-006, PRESENT-CHAKRA-008, PRESENT-CHAKRA-009, PRESENT-SET-001
+    # @spec PRESENT-CHAKRA-006, PRESENT-CHAKRA-008, PRESENT-CHAKRA-009, PRESENT-CHAKRA-011, PRESENT-SET-001
     def test_app_uses_chakra_control_primitives(self) -> None:
         app_source = (REPO_ROOT / "web" / "src" / "App.tsx").read_text()
         self.assertIn("@chakra-ui/react", app_source)
@@ -81,6 +101,8 @@ class TestPhase5BrowserStack(unittest.TestCase):
         self.assertNotIn("<ul", app_source)
         self.assertNotIn("<li", app_source)
         self.assertNotIn("<form", app_source)
+        self.assertIn('textStyle="body"', app_source)
+        self.assertIn('textStyle="header"', app_source)
 
     # @spec PRESENT-LOG-006, PRESENT-CHAKRA-008
     def test_crew_tag_uses_chakra_typography(self) -> None:
@@ -120,7 +142,7 @@ class TestPhase5BrowserStack(unittest.TestCase):
         self.assertIn("simTick", tactical_source)
         self.assertIn("reportDroppedRenderFrame", tactical_source)
 
-    # @spec PRESENT-LOG-004, PRESENT-LOG-005, PRESENT-MODE-001
+    # @spec PRESENT-LOG-004, PRESENT-LOG-005, PRESENT-LOG-007, PRESENT-MODE-001
     def test_app_renders_left_pane_sections_in_required_order(self) -> None:
         app_source = (REPO_ROOT / "web" / "src" / "App.tsx").read_text()
         self.assertIn("Settings", app_source)
@@ -128,6 +150,8 @@ class TestPhase5BrowserStack(unittest.TestCase):
         self.assertIn("Bridge Crew", app_source)
         self.assertIn("Command Log", app_source)
         self.assertIn("Captain command", app_source)
+        self.assertIn("crew-list-accordion", app_source)
+        self.assertIn('value="crew-list"', app_source)
 
         settings_index = app_source.find("Settings")
         sim_time_index = app_source.find("Simulation time")
@@ -168,20 +192,34 @@ class TestPhase5BrowserStack(unittest.TestCase):
         self.assertIn("position", crew_sample["crew"][0])
         self.assertIn("dialogHandles", crew_sample["crew"][0])
 
-    # @spec PRESENT-LOG-006, PRESENT-BIND-010
+    # @spec PRESENT-LOG-006, PRESENT-LOG-008, PRESENT-LOG-009, PRESENT-LOG-010, PRESENT-BIND-010
     def test_crew_tag_component_and_command_log_usage(self) -> None:
         app_source = (REPO_ROOT / "web" / "src" / "App.tsx").read_text()
         crew_tag_source = (REPO_ROOT / "web" / "src" / "components" / "CrewTag.tsx").read_text()
+        crew_info_source = (REPO_ROOT / "web" / "src" / "components" / "CrewInfo.tsx").read_text()
         self.assertIn("CrewTag", app_source)
+        self.assertIn("CrewInfo", app_source)
         self.assertIn("resolveCrewMemberBySpeakerToken", app_source)
         self.assertIn("split", app_source)
         self.assertIn("Bridge Crew", app_source)
         self.assertIn("Command Log", app_source)
+        self.assertIn("variant", crew_tag_source)
+        self.assertIn("compact", crew_tag_source)
+        self.assertIn("RANK_ABBREVIATIONS", crew_tag_source)
+        self.assertIn("split", crew_tag_source)
+        self.assertIn("position", crew_tag_source)
+        self.assertIn("lastName", crew_tag_source)
+        self.assertIn("command-log-line", app_source)
+        self.assertIn("command-log-speaker", app_source)
+        self.assertIn("command-log-message", app_source)
 
         self.assertIn("rank", crew_tag_source)
         self.assertIn("name", crew_tag_source)
         self.assertIn("position", crew_tag_source)
         self.assertIn("crew-tag", crew_tag_source)
+        self.assertIn("crew-info", crew_info_source)
+        self.assertIn("crew-info-identity", crew_info_source)
+        self.assertIn("crew-info-position", crew_info_source)
 
     # @spec PRESENT-MODE-008
     def test_mobile_layout_stacks_command_and_projection_vertically(self) -> None:

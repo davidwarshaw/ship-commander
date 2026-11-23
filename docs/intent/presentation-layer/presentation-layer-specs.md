@@ -13,6 +13,8 @@
 - [ ] **PRESENT-BIND-008**: The Vite development server shall use fixed port `5156` with strict-port behavior and shall not auto-fallback to alternate ports.
 - [ ] **PRESENT-BIND-009**: The system shall load bridge crew roster data from local JSON definition keyed by crew member records.
 - [ ] **PRESENT-BIND-010**: When a command-log line includes a dialog speaker token, the system shall resolve that token against crew-definition dialog handles and canonical crew fields before applying crew-tag typography.
+- [ ] **PRESENT-BIND-011**: The production build configuration shall accept repository-scoped base-path override input for static hosting targets such as GitHub Pages project sites.
+- [ ] **PRESENT-BIND-012**: The repository shall include a GitHub Actions workflow that builds browser assets and deploys the generated `dist` artifact to GitHub Pages in the same repository.
 
 ## Chakra Provider and Alias Integration
 
@@ -25,6 +27,8 @@
 - [ ] **PRESENT-CHAKRA-007**: If provider/model option catalogs are unavailable, then related selectors shall render disabled with deterministic placeholder state until valid options are available.
 - [ ] **PRESENT-CHAKRA-008**: Presentation components shall render Chakra primitives instead of raw HTML elements wherever Chakra-equivalent primitives are available.
 - [ ] **PRESENT-CHAKRA-009**: Raw HTML elements in presentation components shall be limited to required DOM integration points (for example Three.js mount/ref surfaces) where Chakra abstraction is not viable.
+- [ ] **PRESENT-CHAKRA-010**: The Chakra theme system shall define reusable text styles named `body`, `caption`, and `header`.
+- [ ] **PRESENT-CHAKRA-011**: Presentation text shall use `body` text style by default; header text shall use `header`, and command-log speaker captions shall use `caption`.
 
 ## Command Log Rendering
 
@@ -33,7 +37,11 @@
 - [ ] **PRESENT-LOG-003**: For identical `CaptainTurnOutput` inputs, the system shall render identical structural command-log output ordering.
 - [ ] **PRESENT-LOG-004**: The left command pane shall render sections in fixed top-to-bottom order: Settings accordion, simulation time, bridge crew list, command log, captain command input form.
 - [ ] **PRESENT-LOG-005**: The bridge crew list shall render each roster entry with `name`, `rank`, and `position` fields from crew-definition JSON.
-- [ ] **PRESENT-LOG-006**: The system shall render crew typography with shared `CrewTag` component outputting rank, name, and position for bridge roster entries and resolved crew dialog lines in command log.
+- [ ] **PRESENT-LOG-006**: The system shall render crew typography with shared `CrewTag` component, using full identity output for roster contexts and reduced compact identity output for resolved crew dialog lines in command log.
+- [ ] **PRESENT-LOG-007**: The bridge crew section shall render behind a dedicated collapsible accordion item in the command pane.
+- [ ] **PRESENT-LOG-008**: The bridge crew list shall use `CrewInfo` item typography with explicit visual hierarchy and spacing between identity line (rank + name) and duty-position line.
+- [ ] **PRESENT-LOG-009**: For resolved crew dialog lines, command-log rendering shall structurally separate speaker-tag block from message-text block so speaker identity is visually distinct from dialog content.
+- [ ] **PRESENT-LOG-010**: Command-log compact crew tags shall render abbreviated rank, last name only, and crew position in that order.
 
 ## Tactical and Status Projections
 

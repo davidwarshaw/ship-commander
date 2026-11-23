@@ -214,7 +214,11 @@ export function StatusShipView() {
   }, [ship, setStatusCameraOrbit, resetStatusCameraOrbit]);
 
   if (!ship) {
-    return <Box className="status-mode">Status unavailable: ship definition missing or malformed.</Box>;
+    return (
+      <Box className="status-mode">
+        <Text textStyle="body">Status unavailable: ship definition missing or malformed.</Text>
+      </Box>
+    );
   }
 
   return (
@@ -227,26 +231,30 @@ export function StatusShipView() {
         <Box ref={noticeRef} className="tactical-notice" />
       </Box>
       <Box className="status-ship-metadata">
-        <Heading as="h2" size="md">
+        <Heading as="h2" size="md" textStyle="header">
           {ship.name}
         </Heading>
-        <Text>size: {ship.size}</Text>
-        <Text>maxSpeed: {ship.maxSpeed}</Text>
-        <Text>crewSize: {ship.crewSize}</Text>
-        <Heading as="h3" size="sm">
+        <Text textStyle="body">size: {ship.size}</Text>
+        <Text textStyle="body">maxSpeed: {ship.maxSpeed}</Text>
+        <Text textStyle="body">crewSize: {ship.crewSize}</Text>
+        <Heading as="h3" size="sm" textStyle="header">
           armament
         </Heading>
         <List.Root className="status-ship-list">
           {ship.armament.map((entry) => (
-            <List.Item key={entry}>{entry}</List.Item>
+            <List.Item key={entry}>
+              <Text textStyle="body">{entry}</Text>
+            </List.Item>
           ))}
         </List.Root>
-        <Heading as="h3" size="sm">
+        <Heading as="h3" size="sm" textStyle="header">
           launchableVessels
         </Heading>
         <List.Root className="status-ship-list">
           {ship.launchableVessels.map((entry) => (
-            <List.Item key={entry}>{entry}</List.Item>
+            <List.Item key={entry}>
+              <Text textStyle="body">{entry}</Text>
+            </List.Item>
           ))}
         </List.Root>
       </Box>

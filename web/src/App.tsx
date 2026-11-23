@@ -1,23 +1,42 @@
+import {
+  Accordion,
+  Box,
+  Button,
+  HStack,
+  Heading,
+  Input,
+  List,
+  NativeSelect,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
 import { FormEvent, useEffect, useState } from "react";
-import { Accordion, Box, Button, HStack, Heading, Input, List, NativeSelect, Text, VStack } from "@chakra-ui/react";
-import { TacticalCanvas } from "./tactical/TacticalCanvas";
-import { StatusShipView } from "./status/StatusShipView";
-import { useCommanderStore } from "./state/store";
+import { CrewInfo } from "./components/CrewInfo";
 import { CrewTag } from "./components/CrewTag";
-import { getBridgeCrewDefinition, resolveCrewMemberBySpeakerToken } from "./crew/crewCatalog";
+import {
+  getBridgeCrewDefinition,
+  resolveCrewMemberBySpeakerToken,
+} from "./crew/crewCatalog";
+import { useCommanderStore } from "./state/store";
+import { StatusShipView } from "./status/StatusShipView";
+import { TacticalCanvas } from "./tactical/TacticalCanvas";
 
-// @spec PRESENT-CHAKRA-006, PRESENT-CHAKRA-008, PRESENT-CHAKRA-009, PRESENT-SET-001, PRESENT-BIND-009, PRESENT-BIND-010, PRESENT-LOG-004, PRESENT-LOG-005, PRESENT-LOG-006
+// @spec PRESENT-CHAKRA-006, PRESENT-CHAKRA-008, PRESENT-CHAKRA-009, PRESENT-SET-001, PRESENT-BIND-009, PRESENT-BIND-010, PRESENT-LOG-004, PRESENT-LOG-005, PRESENT-LOG-006, PRESENT-LOG-007, PRESENT-LOG-008, PRESENT-LOG-009
 export function App() {
   const [commandDraft, setCommandDraft] = useState("");
   const isLockOwner = useCommanderStore((s) => s.isLockOwner);
   const viewMode = useCommanderStore((s) => s.viewMode);
   const commandLog = useCommanderStore((s) => s.commandLog);
-  const simulationTimeMinutes = useCommanderStore((s) => s.simulationTimeMinutes);
+  const simulationTimeMinutes = useCommanderStore(
+    (s) => s.simulationTimeMinutes,
+  );
   const llmSettings = useCommanderStore((s) => s.llmSettings);
   const apiKeyInput = useCommanderStore((s) => s.apiKeyInput);
   const settingsNotice = useCommanderStore((s) => s.settingsNotice);
   const unsavedLLMSettings = useCommanderStore((s) => s.unsavedLLMSettings);
-  const initializeSessionLock = useCommanderStore((s) => s.initializeSessionLock);
+  const initializeSessionLock = useCommanderStore(
+    (s) => s.initializeSessionLock,
+  );
   const setViewMode = useCommanderStore((s) => s.setViewMode);
   const setLLMProvider = useCommanderStore((s) => s.setLLMProvider);
   const setLLMModel = useCommanderStore((s) => s.setLLMModel);
@@ -53,34 +72,42 @@ export function App() {
         <Accordion.Root collapsible defaultValue={[]} className="command-form">
           <Accordion.Item value="settings">
             <Accordion.ItemTrigger>
-              <Text>Settings</Text>
+              <Text textStyle="header">Settings</Text>
               <Accordion.ItemIndicator />
             </Accordion.ItemTrigger>
             <Accordion.ItemContent>
               <Accordion.ItemBody>
                 <VStack align="stretch">
                   {settingsNotice ? (
-                    <Text>
-                      <Text as="span" className="warning-pill">
+                    <Text textStyle="body">
+                      <Text as="span" className="warning-pill" textStyle="body">
                         {settingsNotice}
                       </Text>
                     </Text>
                   ) : null}
-                  <Text as="label" htmlFor="provider-select">
+                  <Text as="label" htmlFor="provider-select" textStyle="body">
                     LLM Provider
                   </Text>
                   <NativeSelect.Root disabled={!isLockOwner}>
-                    <NativeSelect.Field id="provider-select" value={llmSettings.providerId} onChange={(e) => setLLMProvider(e.target.value)}>
+                    <NativeSelect.Field
+                      id="provider-select"
+                      value={llmSettings.providerId}
+                      onChange={(e) => setLLMProvider(e.target.value)}
+                    >
                       <option value="mock-local">mock-local</option>
                       <option value="anthropic-claude">anthropic-claude</option>
                     </NativeSelect.Field>
                     <NativeSelect.Indicator />
                   </NativeSelect.Root>
-                  <Text as="label" htmlFor="model-select">
+                  <Text as="label" htmlFor="model-select" textStyle="body">
                     Model
                   </Text>
                   <NativeSelect.Root disabled={!isLockOwner}>
-                    <NativeSelect.Field id="model-select" value={llmSettings.modelId} onChange={(e) => setLLMModel(e.target.value)}>
+                    <NativeSelect.Field
+                      id="model-select"
+                      value={llmSettings.modelId}
+                      onChange={(e) => setLLMModel(e.target.value)}
+                    >
                       {modelOptions.map((modelId) => (
                         <option key={modelId} value={modelId}>
                           {modelId}
@@ -89,7 +116,7 @@ export function App() {
                     </NativeSelect.Field>
                     <NativeSelect.Indicator />
                   </NativeSelect.Root>
-                  <Text as="label" htmlFor="api-key-input">
+                  <Text as="label" htmlFor="api-key-input" textStyle="body">
                     API Key
                   </Text>
                   <Input
@@ -97,39 +124,65 @@ export function App() {
                     type="password"
                     value={apiKeyInput}
                     onChange={(e) => setLLMApiKeyInput(e.target.value)}
-                    placeholder={llmSettings.apiKey ? "••••••••" : "Enter API key"}
+                    placeholder={
+                      llmSettings.apiKey ? "••••••••" : "Enter API key"
+                    }
                     disabled={!isLockOwner}
                   />
-                  <Button className="action-btn" type="button" onClick={saveLLMSettings} disabled={!isLockOwner}>
+                  <Button
+                    className="action-btn"
+                    type="button"
+                    onClick={saveLLMSettings}
+                    disabled={!isLockOwner}
+                  >
                     Save settings
                   </Button>
-                  {unsavedLLMSettings ? <Text>LLM settings draft is unsaved.</Text> : null}
+                  {unsavedLLMSettings ? (
+                    <Text textStyle="body">LLM settings draft is unsaved.</Text>
+                  ) : null}
                 </VStack>
               </Accordion.ItemBody>
             </Accordion.ItemContent>
           </Accordion.Item>
         </Accordion.Root>
-        <Text className="simulation-time">
+        <Text className="simulation-time" textStyle="body">
           Simulation time:{" "}
-          <Text as="strong">
+          <Text as="strong" textStyle="body">
             {hours}:{minutes}
           </Text>
         </Text>
-        <Heading as="h2" size="md">
-          Bridge Crew
-        </Heading>
-        <List.Root className="command-list">
-          {bridgeCrew ? (
-            bridgeCrew.crew.map((member) => (
-              <List.Item key={member.name}>
-                <CrewTag member={member} />
-              </List.Item>
-            ))
-          ) : (
-            <List.Item>Bridge crew unavailable.</List.Item>
-          )}
-        </List.Root>
-        <Heading as="h2" size="md">
+        <Accordion.Root
+          collapsible
+          defaultValue={["crew-list"]}
+          className="crew-list-accordion"
+        >
+          <Accordion.Item value="crew-list">
+            <Accordion.ItemTrigger>
+              <Heading as="h2" size="md" textStyle="header">
+                Bridge Crew
+              </Heading>
+              <Accordion.ItemIndicator />
+            </Accordion.ItemTrigger>
+            <Accordion.ItemContent>
+              <Accordion.ItemBody>
+                <List.Root className="command-list bridge-crew-list">
+                  {bridgeCrew ? (
+                    bridgeCrew.crew.map((member) => (
+                      <List.Item key={member.name}>
+                        <CrewInfo member={member} />
+                      </List.Item>
+                    ))
+                  ) : (
+                    <List.Item>
+                      <Text textStyle="body">Bridge crew unavailable.</Text>
+                    </List.Item>
+                  )}
+                </List.Root>
+              </Accordion.ItemBody>
+            </Accordion.ItemContent>
+          </Accordion.Item>
+        </Accordion.Root>
+        <Heading as="h2" size="md" textStyle="header">
           Command Log
         </Heading>
         <List.Root className="command-list">
@@ -137,22 +190,44 @@ export function App() {
             const [rawSpeaker, ...messageParts] = line.text.split(":");
             const hasSpeakerToken = messageParts.length > 0;
             if (!bridgeCrew || !hasSpeakerToken) {
-              return <List.Item key={line.id}>{line.text}</List.Item>;
+              return (
+                <List.Item key={line.id}>
+                  <Text textStyle="body">{line.text}</Text>
+                </List.Item>
+              );
             }
-            const member = resolveCrewMemberBySpeakerToken(bridgeCrew, rawSpeaker);
+            const member = resolveCrewMemberBySpeakerToken(
+              bridgeCrew,
+              rawSpeaker,
+            );
             if (!member) {
-              return <List.Item key={line.id}>{line.text}</List.Item>;
+              return (
+                <List.Item key={line.id}>
+                  <Text textStyle="body">{line.text}</Text>
+                </List.Item>
+              );
             }
             const message = messageParts.join(":").trim();
             return (
               <List.Item key={line.id}>
-                <CrewTag member={member} />: {message}
+                <HStack className="command-log-line" align="start">
+                  <Box className="command-log-speaker">
+                    <CrewTag member={member} variant="compact" />
+                  </Box>
+                  <Text className="command-log-message" textStyle="body">
+                    {message}
+                  </Text>
+                </HStack>
               </List.Item>
             );
           })}
         </List.Root>
-        <Box as="form" className="command-form command-form-bottom" onSubmit={onSubmitCommand}>
-          <Text as="label" htmlFor="command-input">
+        <Box
+          as="form"
+          className="command-form command-form-bottom"
+          onSubmit={onSubmitCommand}
+        >
+          <Text as="label" htmlFor="command-input" textStyle="body">
             Captain command
           </Text>
           <HStack className="command-form-row">
@@ -171,23 +246,23 @@ export function App() {
       <Box as="main" className="tactical-panel">
         <HStack className="view-mode-toggle">
           <Button
-            className={viewMode === "tactical" ? "action-btn selected" : "action-btn"}
+            className={
+              viewMode === "tactical" ? "action-btn selected" : "action-btn"
+            }
             onClick={() => setViewMode("tactical")}
           >
             Tactical
           </Button>
           <Button
-            className={viewMode === "status" ? "action-btn selected" : "action-btn"}
+            className={
+              viewMode === "status" ? "action-btn selected" : "action-btn"
+            }
             onClick={() => setViewMode("status")}
           >
             Status
           </Button>
         </HStack>
-        {viewMode === "tactical" ? (
-          <TacticalCanvas />
-        ) : (
-          <StatusShipView />
-        )}
+        {viewMode === "tactical" ? <TacticalCanvas /> : <StatusShipView />}
       </Box>
     </Box>
   );

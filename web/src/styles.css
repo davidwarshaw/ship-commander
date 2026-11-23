@@ -45,6 +45,41 @@ body {
   letter-spacing: 0.01em;
 }
 
+.crew-tag-compact {
+  font-size: 0.78rem;
+  line-height: 1.2;
+  font-weight: 500;
+  color: #cfcfcf;
+  text-transform: uppercase;
+}
+
+.crew-list-accordion {
+  margin: 6px 0 12px;
+}
+
+.bridge-crew-list {
+  gap: 10px;
+}
+
+.bridge-crew-list li {
+  padding: 6px 8px;
+  border: 1px solid #2f2f2f;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.crew-info {
+  line-height: 1.25;
+}
+
+.crew-info-identity {
+  letter-spacing: 0.01em;
+}
+
+.crew-info-position {
+  color: #c7c7c7;
+}
+
 .action-btn {
   border: 1px solid #666;
   background: #111;
@@ -187,6 +222,21 @@ body {
 
 .command-form-bottom {
   margin-top: 14px;
+}
+
+.command-log-line {
+  gap: 8px;
+}
+
+.command-log-speaker {
+  min-width: 120px;
+  flex: 0 0 120px;
+}
+
+.command-log-message {
+  flex: 1;
+  font-size: 0.92rem;
+  line-height: 1.35;
 }
 
 @media (max-width: 900px) {

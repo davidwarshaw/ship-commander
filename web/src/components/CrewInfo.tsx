@@ -5,14 +5,14 @@ type CrewInfoProps = {
   member: Pick<BridgeCrewMember, "rank" | "name" | "position">;
 };
 
-// @spec PRESENT-LOG-006
+// @spec PRESENT-LOG-006, PRESENT-LOG-008
 export function CrewInfo({ member }: CrewInfoProps) {
   return (
-    <Stack>
-      <Text textStyle="md" fontWeight="normal">
+    <Stack className="crew-info" gap="0.15rem">
+      <Text className="crew-info-identity" textStyle="body" fontWeight="semibold">
         {member.rank} {member.name}
       </Text>
-      <Text textStyle="sm" fontWeight="normal">
+      <Text className="crew-info-position" textStyle="body" fontWeight="normal">
         {member.position}
       </Text>
     </Stack>

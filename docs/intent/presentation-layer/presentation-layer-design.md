@@ -25,6 +25,8 @@ Iteration 1 implementation targets a browser single-page application:
 - **Vite**: development/build pipeline and module runtime
   - dev server binds to local-network interface (non-loopback host) for LAN/browser-device access
   - dev server uses fixed port `5156` with strict-port behavior (no auto-port fallback)
+  - production build supports repository-scoped base path override for GitHub Pages deployment in same repository
+  - repository includes a GitHub Actions workflow that builds `dist` and deploys it to GitHub Pages
 
 ## Scope and Boundaries
 
@@ -84,6 +86,10 @@ Root composition rules:
 - if provider module path/export contract is missing, build/start fails explicitly (no fallback provider path)
 - Chakra-first rendering applies across presentation components: use Chakra primitives instead of raw HTML nodes wherever equivalent primitives exist
 - raw HTML nodes are reserved for integration points that require direct DOM/Three.js refs or browser-native APIs without Chakra abstraction
+- Chakra theme defines shared text styles `body`, `caption`, and `header` for presentation typography reuse
+- presentation text defaults to `body` style, except:
+  - header text (heading components) uses `header`
+  - command-log speaker caption text uses `caption`
 
 If required command log payload is missing, render operational notice state instead of partial normal output.
 
@@ -108,8 +114,13 @@ Rendering rules:
   4. command log
   5. captain command input form
 - bridge crew list is sourced from local crew-definition JSON and rendered read-only in command pane
+- bridge crew list is rendered inside a dedicated accordion section in the command pane
 - bridge crew roster typography uses shared `CrewTag` presentation component (rank, name, position)
+- bridge crew list item body uses `CrewInfo` component typography with explicit spacing hierarchy between rank/name line and position line
 - command log typography uses the same `CrewTag` component for any dialog line whose speaker token resolves to a bridge-crew member
+- command-log `CrewTag` variant is compact (reduced information density and smaller type) relative to crew roster display
+- command-log `CrewTag` compact label format uses abbreviated rank + last name + position
+- command-log line structure separates speaker-tag block from message-text block with explicit layout affordances
 - command-log speaker resolution uses crew-definition dialog handles and canonical crew fields; unresolved speakers render as plain text line prefixes
 - command input form remains lock-aware and submit behavior remains unchanged while moving to pane-bottom position
 
