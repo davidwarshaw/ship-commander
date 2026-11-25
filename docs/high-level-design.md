@@ -26,6 +26,7 @@ Iteration 1 runs entirely in the browser as a single-page application built with
 - **React + TypeScript** for UI composition and command-log interactions
 - **Vite** for development/build pipeline
 - **Zustand** for shared command/simulation/presentation state
+- **bitECS** for simulation entity-component-system world state and system execution
 - **Three.js** for tactical scene rendering
 
 The initial UI shell is a single app with a canvas-primary layout. Command log and status controls render as React overlays/panels around the tactical canvas. Simulation updates run on a fixed-step tick decoupled from render frame rate.

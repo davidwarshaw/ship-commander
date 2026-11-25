@@ -104,6 +104,10 @@ body {
   gap: 8px;
 }
 
+.dev-script-runner {
+  margin-top: 10px;
+}
+
 .command-form input {
   border: 1px solid #666;
   background: #0a0a0a;
@@ -220,6 +224,50 @@ body {
   margin-bottom: 6px;
 }
 
+.debug-simulation-view {
+  padding: 16px;
+  overflow: auto;
+}
+
+.debug-simulation-list {
+  margin-top: 10px;
+  gap: 8px;
+}
+
+.debug-simulation-list li {
+  border: 1px solid #2f2f2f;
+  border-radius: 6px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.debug-llm-view {
+  padding: 16px;
+  overflow: auto;
+}
+
+.debug-llm-list {
+  margin-top: 10px;
+  gap: 8px;
+}
+
+.debug-llm-list li {
+  border: 1px solid #2f2f2f;
+  border-radius: 6px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.debug-llm-message {
+  margin-top: 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.debug-llm-payload {
+  margin-top: 6px;
+}
+
 .command-form-bottom {
   margin-top: 14px;
 }
@@ -240,14 +288,26 @@ body {
 }
 
 @media (max-width: 900px) {
+  #root {
+    height: auto;
+    min-height: 100vh;
+  }
+
   .app-shell {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
+    height: auto;
+    min-height: 100vh;
   }
 
   .command-panel {
     border-right: 0;
     border-bottom: 1px solid #333;
+    overflow: visible;
+  }
+
+  .tactical-panel {
+    min-height: 60vh;
   }
 
   .status-ship-layout {

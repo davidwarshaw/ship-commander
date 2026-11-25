@@ -3,9 +3,11 @@
 ## Prompt Package Assembly
 
 - [ ] **LLMGEN-PROMPT-001**: When a captain turn enters planning, the system shall build a prompt package that includes captain command text, snapshot id, mission context, ship status summary, role instructions, and output contract requirements.
+- [ ] **LLMGEN-PROMPT-006**: The system prompt shall include a game-context preamble describing Ship Commander and planner role, plus crew roster entries with aliases, assigned systems, and allowed system actions.
 - [ ] **LLMGEN-PROMPT-002**: The system shall include only context fields required for role planning and action-parameter grounding in the prompt package.
 - [ ] **LLMGEN-PROMPT-003**: The system shall include explicit uncertainty-handling guidance instructing the model to prefer clarification-oriented plans over fabricated assumptions.
 - [ ] **LLMGEN-PROMPT-004**: When a prompt package is assembled, the system shall persist a prompt package hash in generation metadata.
+- [ ] **LLMGEN-PROMPT-005**: For Anthropic direct-browser dispatch, the system prompt shall include the `CrewPlan[]` output contract and required field shape constraints.
 
 ## Plan Generation Contract
 
@@ -29,9 +31,11 @@
 - [ ] **LLMGEN-PROV-009**: Where selected provider id is `anthropic-claude`, the system shall send API key via `x-api-key` header and include required Anthropic API version header.
 - [ ] **LLMGEN-PROV-010**: Where selected provider id is `anthropic-claude`, the system shall include selected model id and captain-turn content in request payload and require model text output to contain JSON plan payload.
 - [ ] **LLMGEN-PROV-011**: Where selected provider id is `anthropic-claude`, the system shall send `Content-Type: application/json` and `anthropic-version` header set to adapter-supported value.
+- [ ] **LLMGEN-PROV-015**: Where selected provider id is `anthropic-claude` in browser runtime, the system shall send header `anthropic-dangerous-direct-browser-access: true` on direct Messages API calls.
 - [ ] **LLMGEN-PROV-012**: Where selected provider id is `anthropic-claude`, the system shall encode captain command as one user message text content block using provider-compatible JSON-safe escaping.
 - [ ] **LLMGEN-PROV-013**: Where selected provider id is `anthropic-claude`, the system shall include fixed `max_tokens` value in request payload per runtime policy.
 - [ ] **LLMGEN-PROV-014**: For iteration-1 browser runtime, the system shall allow direct client dispatch to Anthropic Messages API using captured API key settings.
+- [ ] **LLMGEN-PROV-016**: Where selected provider id is `anthropic-claude`, the system shall request structured output via a tool schema (`input_schema`) and explicit tool choice for CrewPlan payload emission.
 
 ## Validation and Regeneration
 

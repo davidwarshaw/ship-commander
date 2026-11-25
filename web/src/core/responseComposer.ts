@@ -29,7 +29,16 @@ export function composeTurnResponseTS(
   return {
     outcomeClassification: "completed",
     outcomeSummary: "Turn completed successfully.",
-    crewLines: arbitration.acceptedActions.map((a) => `Crew: Executed ${a.family}.`),
+    crewLines: arbitration.acceptedActions.map((a) => {
+      if (a.family === "orbit_planet") {
+        const target =
+          a.params && typeof a.params.target === "string"
+            ? a.params.target
+            : "target planet";
+        return `Crew: Entering orbit around ${target}.`;
+      }
+      return `Crew: Executed ${a.family}.`;
+    }),
     clarificationPrompts: [],
     operationalNotices: []
   };

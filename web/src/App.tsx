@@ -13,6 +13,8 @@ import {
 import { FormEvent, useEffect, useState } from "react";
 import { CrewInfo } from "./components/CrewInfo";
 import { CrewTag } from "./components/CrewTag";
+import { DebugLLMView } from "./debug/DebugLLMView";
+import { DebugSimulationView } from "./debug/DebugSimulationView";
 import {
   getBridgeCrewDefinition,
   resolveCrewMemberBySpeakerToken,
@@ -21,10 +23,9 @@ import { useCommanderStore } from "./state/store";
 import { StatusShipView } from "./status/StatusShipView";
 import { TacticalCanvas } from "./tactical/TacticalCanvas";
 
-// @spec PRESENT-CHAKRA-006, PRESENT-CHAKRA-008, PRESENT-CHAKRA-009, PRESENT-SET-001, PRESENT-BIND-009, PRESENT-BIND-010, PRESENT-LOG-004, PRESENT-LOG-005, PRESENT-LOG-006, PRESENT-LOG-007, PRESENT-LOG-008, PRESENT-LOG-009
+// @spec PRESENT-CHAKRA-006, PRESENT-CHAKRA-008, PRESENT-CHAKRA-009, PRESENT-SET-001, PRESENT-SET-008A, PRESENT-SET-008C, PRESENT-BIND-009, PRESENT-BIND-010, PRESENT-LOG-004, PRESENT-LOG-005, PRESENT-LOG-006, PRESENT-LOG-007, PRESENT-LOG-008, PRESENT-LOG-009, PRESENT-MODE-009, PRESENT-MODE-010, PRESENT-DBG-001, PRESENT-DBG-005, PRESENT-DBG-009
 export function App() {
   const [commandDraft, setCommandDraft] = useState("");
-  const isLockOwner = useCommanderStore((s) => s.isLockOwner);
   const viewMode = useCommanderStore((s) => s.viewMode);
   const commandLog = useCommanderStore((s) => s.commandLog);
   const simulationTimeMinutes = useCommanderStore(
@@ -34,6 +35,8 @@ export function App() {
   const apiKeyInput = useCommanderStore((s) => s.apiKeyInput);
   const settingsNotice = useCommanderStore((s) => s.settingsNotice);
   const unsavedLLMSettings = useCommanderStore((s) => s.unsavedLLMSettings);
+  const devScriptRunStatus = useCommanderStore((s) => s.devScriptRunStatus);
+  const devScriptRunMessage = useCommanderStore((s) => s.devScriptRunMessage);
   const initializeSessionLock = useCommanderStore(
     (s) => s.initializeSessionLock,
   );
@@ -43,6 +46,7 @@ export function App() {
   const setLLMApiKeyInput = useCommanderStore((s) => s.setLLMApiKeyInput);
   const saveLLMSettings = useCommanderStore((s) => s.saveLLMSettings);
   const submitCommand = useCommanderStore((s) => s.submitCommand);
+  const runDevOrderTestScript = useCommanderStore((s) => s.runDevOrderTestScript);
   const bridgeCrew = getBridgeCrewDefinition("bridge-crew");
 
   useEffect(() => {
@@ -63,8 +67,9 @@ export function App() {
     llmSettings.providerId === "mock-local"
       ? ["mock-v1"]
       : llmSettings.providerId === "anthropic-claude"
-        ? ["claude-3-5-sonnet-latest"]
+        ? ["claude-sonnet-4-6"]
         : [];
+  const showDebugView = import.meta.env.DEV;
 
   return (
     <Box className="app-shell">
@@ -88,7 +93,7 @@ export function App() {
                   <Text as="label" htmlFor="provider-select" textStyle="body">
                     LLM Provider
                   </Text>
-                  <NativeSelect.Root disabled={!isLockOwner}>
+                  <NativeSelect.Root>
                     <NativeSelect.Field
                       id="provider-select"
                       value={llmSettings.providerId}
@@ -102,7 +107,7 @@ export function App() {
                   <Text as="label" htmlFor="model-select" textStyle="body">
                     Model
                   </Text>
-                  <NativeSelect.Root disabled={!isLockOwner}>
+                  <NativeSelect.Root>
                     <NativeSelect.Field
                       id="model-select"
                       value={llmSettings.modelId}
@@ -127,13 +132,11 @@ export function App() {
                     placeholder={
                       llmSettings.apiKey ? "••••••••" : "Enter API key"
                     }
-                    disabled={!isLockOwner}
                   />
                   <Button
                     className="action-btn"
                     type="button"
                     onClick={saveLLMSettings}
-                    disabled={!isLockOwner}
                   >
                     Save settings
                   </Button>
@@ -235,13 +238,28 @@ export function App() {
               id="command-input"
               value={commandDraft}
               onChange={(e) => setCommandDraft(e.target.value)}
-              placeholder={isLockOwner ? "Issue a command..." : "Read-only tab"}
+              placeholder="Issue a command..."
             />
             <Button type="submit" className="action-btn">
               Send
             </Button>
           </HStack>
         </Box>
+        {showDebugView ? (
+          <VStack align="stretch" className="dev-script-runner">
+            <Button
+              className="action-btn"
+              type="button"
+              onClick={() => void runDevOrderTestScript()}
+              disabled={devScriptRunStatus === "running"}
+            >
+              Run test script
+            </Button>
+            {devScriptRunMessage ? (
+              <Text textStyle="caption">{devScriptRunMessage}</Text>
+            ) : null}
+          </VStack>
+        ) : null}
       </Box>
       <Box as="main" className="tactical-panel">
         <HStack className="view-mode-toggle">
@@ -261,8 +279,36 @@ export function App() {
           >
             Status
           </Button>
+          {showDebugView ? (
+            <Button
+              className={
+                viewMode === "debug" ? "action-btn selected" : "action-btn"
+              }
+              onClick={() => setViewMode("debug")}
+            >
+              Debug
+            </Button>
+          ) : null}
+          {showDebugView ? (
+            <Button
+              className={
+                viewMode === "llm-debug" ? "action-btn selected" : "action-btn"
+              }
+              onClick={() => setViewMode("llm-debug")}
+            >
+              LLM Debug
+            </Button>
+          ) : null}
         </HStack>
-        {viewMode === "tactical" ? <TacticalCanvas /> : <StatusShipView />}
+        {viewMode === "tactical" ? (
+          <TacticalCanvas />
+        ) : viewMode === "status" ? (
+          <StatusShipView />
+        ) : viewMode === "debug" ? (
+          <DebugSimulationView />
+        ) : (
+          <DebugLLMView />
+        )}
       </Box>
     </Box>
   );

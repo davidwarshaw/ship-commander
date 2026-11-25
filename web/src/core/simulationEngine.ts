@@ -26,6 +26,13 @@ export function executeRoundTS(
       next.contacts = "Updated";
     } else if (action.family === "hold_position") {
       next.flightMode = "Hold";
+    } else if (action.family === "orbit_planet") {
+      const target =
+        action.params && typeof action.params.target === "string"
+          ? action.params.target
+          : "Jupiter";
+      next.flightMode = "Orbit";
+      next.orbitTarget = target;
     } else if (action.family === "raise_shields") {
       const current = parseInt((next.shields ?? "90").replace("%", ""), 10);
       next.shields = `${Math.min(current + 5, 100)}%`;

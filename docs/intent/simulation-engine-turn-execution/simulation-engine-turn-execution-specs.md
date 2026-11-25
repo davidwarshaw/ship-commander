@@ -9,6 +9,13 @@
 - [ ] **SIMEXEC-GATE-005**: If accepted action list is empty or contract-invalid at execution gate, then the system shall reject execution and emit an explicit contract error reason.
 - [ ] **SIMEXEC-GATE-006**: If execution policy version at execution gate does not match the version assumed for the accepted action contract, then the system shall emit reason `EXECUTION_POLICY_VERSION_MISMATCH` and apply no world-state mutation.
 
+## ECS World and Systems
+
+- [ ] **SIMEXEC-ECS-001**: At simulation startup, the system shall create ECS entities for simulation bodies and attach `Position` and `Velocity` components where movement simulation is required.
+- [ ] **SIMEXEC-ECS-002**: On each simulation tick, the system shall advance world time by the configured tick increment before running ECS systems.
+- [ ] **SIMEXEC-ECS-003**: The movement system shall update position by applying velocity scaled by tick increment for entities containing both `Position` and `Velocity` components.
+- [ ] **SIMEXEC-ECS-004**: On each simulation tick, crewed systems shall update ship-entity component state from their settings before movement-system increment executes.
+
 ## Transactional Action Execution
 
 - [ ] **SIMEXEC-TX-001**: When execution gate checks pass, the system shall execute accepted actions within a single round transaction boundary.

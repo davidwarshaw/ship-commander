@@ -122,7 +122,7 @@ Rendering rules:
 - command-log `CrewTag` compact label format uses abbreviated rank + last name + position
 - command-log line structure separates speaker-tag block from message-text block with explicit layout affordances
 - command-log speaker resolution uses crew-definition dialog handles and canonical crew fields; unresolved speakers render as plain text line prefixes
-- command input form remains lock-aware and submit behavior remains unchanged while moving to pane-bottom position
+- command input form submit behavior remains unchanged while moving to pane-bottom position
 
 ### Stage 3: Tactical and Status Projections
 
@@ -164,6 +164,36 @@ Status projection:
   - zoom framing where ship almost fills viewport
 - maintain consistent threshold bands and labels across turns
 
+Debug simulation projection:
+- render a debug-only simulation state view parallel to tactical/status mode surfaces
+- list simulated bodies with movement diagnostics including:
+  - current position vector
+  - current velocity vector and speed magnitude
+  - orbit classification (`in orbit`/`not in orbit`) and orbit metadata when orbiting
+  - simulation-frame values needed to reason about movement/orbit behavior (for example body type and active system context)
+- derive debug values from the same canonical/state-derived movement inputs used by tactical projection so diagnostics reflect rendered simulation state
+
+Debug LLM projection:
+- render a debug-only LLM trace view parallel to tactical/status/simulation-debug mode surfaces
+- list LLM generation call entries in reverse-chronological order with:
+  - timestamp
+  - provider id and model id
+  - phase (`request`, `response`, `error`)
+  - provider/request outcome message payload text
+  - provider payload sections for `systemPrompt`, `messages`, `responseText`, and `responseBody`
+- include provider failure details (for example `MODEL_SERVICE_UNREACHABLE`) when present
+- attempt JSON pretty-print formatting for embedded response text while preserving original text when parse fails
+- exclude API key material from all LLM debug trace entries
+
+Debug scripted-order harness:
+- load captain-order test scripts from local JSON catalog entries during development/runtime testing
+- expose a debug-only command-pane control to execute a selected/default script
+- execute script steps sequentially, submitting each order through normal command submit path
+- use the currently configured provider/model settings for script-run submitted orders (no script-level provider override)
+- wait for each step to resolve before evaluating assertions
+- evaluate assertions against post-step state deltas and values (for example sim tick increments, command-log fragments, system-status expectations)
+- report pass/fail status and first failing assertion message in command-pane debug status text
+
 ### Stage 4: Mode Toggle and Shared Interaction State
 
 Mode behavior:
@@ -173,6 +203,7 @@ Mode behavior:
 - mode switch does not trigger reclassification or recomposition of turn outcomes
 - stale-projection mode toggles remain allowed, with visible stale warning state
 - in narrow/mobile viewports, command panel and active projection view stack vertically with command panel first
+- in development mode, mode switcher includes both simulation debug and LLM debug selections
 
 Shared interaction state includes:
 - selected entity or subsystem
@@ -208,15 +239,12 @@ Persistence rules:
 - API key is excluded from command log lines, diagnostics output, and telemetry payloads
 
 Mutation authority:
-- only writer-lock owner tabs may save settings to shared localStorage settings keys
-- non-owner tabs render settings as read-only and may observe cross-tab updates through storage events
-- if ownership is lost before or during save, save is rejected and a read-only operational notice is rendered
-- non-owner edit attempts are blocked in UI controls and do not mutate in-memory settings draft
-- if ownership is lost mid-interaction, active edits are retained as unsaved local draft and save path remains blocked until ownership is reacquired
-- ownership-loss/read-only notices are rendered inside the Settings accordion section
+- settings controls are editable in all tabs and are not gated by writer-lock ownership
+- save writes the active tab's settings payload directly to shared localStorage key
+- no ownership-loss/read-only notices or lock-reacquisition controls are rendered for settings
 
 Cross-tab ordering and merge rules:
-- storage-event updates are ignored while owner tab has unsaved local settings edits; owner may save or reset to incoming values
+- storage-event updates are ignored while a tab has unsaved local settings edits; user may save local draft or reset to incoming values
 - settings snapshot capture for command submit occurs before applying any pending cross-tab storage event updates
 - submit uses the local current settings value at capture instant and remains immutable for that turn
 - unsaved local draft values are the source of submit-time capture even when accordion is collapsed
@@ -331,7 +359,7 @@ Configuration changes rendering behavior, not authoritative turn/simulation sema
 | Browser state model | Zustand shared store | Context-only reducer; Redux Toolkit | Zustand keeps iteration-1 state orchestration lightweight while still supporting shared selectors across React and scene adapters. |
 | Scene integration boundary | React shell + Three.js adapter layer | Full imperative Three.js app with React overlays | Adapter boundary keeps UI concerns declarative while isolating scene graph mutation logic. |
 | Update cadence | Fixed-step simulation data consumed by decoupled render updates | Render-frame-driven simulation updates | Decoupling protects deterministic turn semantics from frame-rate variability across devices. |
-| Settings persistence | localStorage-backed provider settings with writer-lock-gated writes | Session-only memory; unrestricted cross-tab writes | Persistent settings reduce repeated setup friction while writer-lock-gated writes preserve shared-session mutation authority. |
+| Settings persistence | localStorage-backed provider settings with unrestricted writes | Session-only memory | Persistent settings reduce repeated setup friction while keeping settings behavior simple during local iteration. |
 
 ## Open Questions & Future Decisions
 

@@ -73,6 +73,8 @@ Integration precedence:
 The component assembles a deterministic prompt payload from:
 - normalized captain command text
 - mission and ship-state context summary
+- game preamble describing Ship Commander and planner role
+- crew roster with aliases, assigned systems, and allowed system actions
 - role instructions and allowed action families
 - output contract/schema requirements
 
@@ -80,6 +82,7 @@ Prompt assembly rules:
 - include only context fields needed for role planning and action-parameter grounding
 - include explicit uncertainty-handling instruction: prefer clarification-oriented plans over fabricated assumptions
 - bind output format requirements to machine-parseable schema shape
+- for Anthropic adapter dispatch, include a system prompt that explicitly defines `CrewPlan[]` field shape and JSON-only output constraint
 
 ### Stage 2: Role-Scoped Plan Generation
 
@@ -111,15 +114,18 @@ Anthropic Claude adapter contract:
 - provider id `anthropic-claude` dispatches to Anthropic Messages API endpoint (`POST /v1/messages`)
 - adapter sends API key using `x-api-key` header and includes required version header
 - adapter sends `Content-Type: application/json`
-- adapter request body includes selected model id, deterministic instruction scaffold, captain-turn content as user message, and fixed `max_tokens` budget
+- adapter request body includes selected model id, deterministic instruction scaffold in `system`, captain-turn content as user message, and fixed `max_tokens` budget
+- adapter request body includes a structured output tool schema (`input_schema`) and explicit `tool_choice` targeting CrewPlan payload emission
 - adapter expects JSON plan payload in model text output and normalizes it into `CrewPlan[]` contract
 - malformed or non-JSON model text output is classified as adapter output normalization error
 
 Anthropic request/response handling rules:
 - required version header is `anthropic-version` and must be set to configured supported value for the adapter
+- direct browser dispatch must include `anthropic-dangerous-direct-browser-access: true`
 - direct browser dispatch is supported for iteration 1 and uses client-side API key from persisted settings
 - non-2xx responses are normalized to operational generation errors with reason mapping (`AUTH_REJECTED`, `RATE_LIMITED`, `PROVIDER_UNAVAILABLE`, `PROVIDER_REQUEST_INVALID`)
 - adapter extracts JSON candidate text from text content blocks only; missing text content blocks are normalization errors
+- adapter prefers tool-use structured output (`tool_use` with CrewPlan schema input) and falls back to text-block normalization only when tool output is absent
 - adapter may strip Markdown code-fence wrappers around JSON candidate text; non-JSON surrounding prose is not accepted
 - parsed JSON root must be an array of plan objects; non-array roots are normalization errors
 - structural field/type checks for plan payload remain stage-3 validation responsibility after adapter normalization

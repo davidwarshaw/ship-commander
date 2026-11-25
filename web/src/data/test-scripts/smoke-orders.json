@@ -1,0 +1,18 @@
+{
+  "id": "smoke-orders",
+  "name": "Smoke Orders",
+  "steps": [
+    {
+      "id": "orbit-jupiter",
+      "order": "Take us into orbit around Jupiter",
+      "expect": {
+        "simTickDeltaAtLeast": 1,
+        "commandLogIncludes": ["Crew: Entering orbit around Jupiter."],
+        "systemStatusEquals": {
+          "flightMode": "Orbit",
+          "orbitTarget": "Jupiter"
+        }
+      }
+    }
+  ]
+}

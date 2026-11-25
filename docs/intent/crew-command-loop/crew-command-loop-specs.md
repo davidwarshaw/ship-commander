@@ -21,6 +21,15 @@
 - [ ] **CREWCMD-PLAN-007**: Where planning returns `planning_operational_error=true`, the system shall apply mode/channel policy that either transitions the turn to `failed` or routes to captain clarification/retry.
 - [ ] **CREWCMD-PLAN-008**: Where planning returns `planning_clarification_needed=true` and no arbitration-ready plans, the system shall transition the turn to `awaiting_clarification` without entering arbitration.
 
+## Crewed System Action Catalog
+
+- [ ] **CREWCMD-SYS-001**: The system shall provide a `CrewedSystem` base abstraction that supports registering a crew member in charge of that subsystem.
+- [ ] **CREWCMD-SYS-002**: Subclasses of `CrewedSystem` shall declare action methods and action metadata containing action name and description.
+- [ ] **CREWCMD-SYS-003**: The `CrewedSystem` base abstraction shall expose a listing API that returns action names and descriptions for the subsystem.
+- [ ] **CREWCMD-SYS-004**: The system shall provide a `HelmSystem` subclass as an initial concrete crewed subsystem implementation.
+- [ ] **CREWCMD-SYS-005**: On each turn tick, crewed systems shall update the ship entity from system settings before simulation increment systems execute.
+- [ ] **CREWCMD-SYS-006**: The `CrewedSystem` base abstraction shall expose a formatter method that returns assigned crew member identity and aliases (`dialogHandles`) in one printable string.
+
 ## Arbitration and Clarification
 
 - [ ] **CREWCMD-ARB-001**: When validating and arbitrating crew plans, the system shall evaluate each candidate action for action-schema validity, role-permission validity, simulation preconditions, and temporal-order feasibility.

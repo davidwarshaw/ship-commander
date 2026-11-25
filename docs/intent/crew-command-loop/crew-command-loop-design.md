@@ -183,6 +183,19 @@ Additional contract rules:
 - `CaptainTurnInput` snapshot id must match current canonical simulation snapshot at execution start; mismatch returns `SNAPSHOT_STALE` and routes to clarification.
 - Execution-gate `SNAPSHOT_STALE` semantics are owned by simulation-engine-turn-execution and mirrored here as orchestration contract behavior.
 
+## Crewed System Action Catalog
+
+Crew-operated subsystems expose a shared crewed-system base contract:
+- each subsystem can register one crew member in charge
+- each subsystem declares action methods and action metadata (name + description)
+- orchestration can enumerate subsystem action metadata without invoking actions
+- each turn tick applies crewed-system settings to ship entity state before simulation increment systems run
+- each subsystem can render assigned crew identity plus aliases as a printable string for diagnostics/debugging
+
+Iteration 1 introduces:
+- `CrewedSystem` base abstraction
+- `HelmSystem` concrete subsystem with helm action methods and action metadata
+
 ## Error Handling and Recovery
 
 - **Schema failure (plan output)**: one retry, then clarification request.

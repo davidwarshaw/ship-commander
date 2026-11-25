@@ -4,12 +4,20 @@ export type PlanningSettings = {
   modelId: string;
 };
 
+export type LLMDebugEvent = {
+  turnId: string;
+  timestamp: number;
+  phase: "request" | "response" | "error";
+  providerId: string;
+  modelId: string;
+  message: string;
+  payload?: unknown;
+};
+
 export type TurnInput = {
   turnId: string;
   captainMessage: string;
   snapshotId: string;
-  lockOwnerTabId: string | null;
-  isLockOwner: boolean;
   simTick: number;
   projectionSnapshotTick: number;
   planningSettings: PlanningSettings;
@@ -42,6 +50,7 @@ export type PlanningResult = {
   planningOperationalError: boolean;
   planningReasons: string[];
   planningErrorReason?: string;
+  debugEvents: LLMDebugEvent[];
 };
 
 export type ArbitrationResult = {

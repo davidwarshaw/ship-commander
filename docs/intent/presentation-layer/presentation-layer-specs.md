@@ -80,6 +80,20 @@
 - [ ] **PRESENT-PROJ-033**: Tactical view shall render a corner reset-camera control that restores tactical default camera pose to top-down ecliptic framing with nearest-planet view.
 - [ ] **PRESENT-PROJ-034**: Status view shall render a corner reset-camera control that restores status default camera pose to right-angle ship profile with bow-left/stern-right orientation and near-fit zoom.
 
+## Debug Simulation Projection
+
+- [ ] **PRESENT-DBG-001**: The system shall render a debug-only simulation view mode parallel to tactical and status views.
+- [ ] **PRESENT-DBG-002**: The debug view shall list simulated bodies and render per-body position vector, velocity vector, and speed magnitude.
+- [ ] **PRESENT-DBG-003**: The debug view shall render orbit classification (`in orbit` or `not in orbit`) and include orbit metadata when the body is in orbit.
+- [ ] **PRESENT-DBG-004**: Debug movement/orbit diagnostics shall be derived from canonical/state-derived movement inputs consistent with tactical projection state.
+- [ ] **PRESENT-DBG-005**: The system shall render a debug-only LLM trace view mode parallel to tactical, status, and simulation debug views.
+- [ ] **PRESENT-DBG-006**: The LLM debug view shall list per-turn provider call traces including provider id, model id, phase (`request`, `response`, or `error`), and timestamp.
+- [ ] **PRESENT-DBG-007**: The LLM debug view shall render response/error messages from LLM generation attempts without exposing API key material.
+- [ ] **PRESENT-DBG-008**: The LLM debug view shall render `systemPrompt`, `messages`, and `response` payload fields for provider traces and shall attempt pretty-print formatting for embedded JSON response text.
+- [ ] **PRESENT-DBG-009**: In development mode, the command pane shall render a debug-only `Run test script` control that executes a local JSON captain-order script.
+- [ ] **PRESENT-DBG-010**: Script-run execution shall submit each scripted order sequentially, wait for step completion, and evaluate per-step assertions against updated command-log/system-state conditions.
+- [ ] **PRESENT-DBG-011**: Script-run execution shall use the active configured LLM provider/model settings and shall not override scripted turns to a mock provider.
+
 ## Mode Toggle and Shared Interaction State
 
 - [ ] **PRESENT-MODE-001**: The system shall keep command log primary/visible in all secondary view modes as configured by policy.
@@ -90,6 +104,8 @@
 - [ ] **PRESENT-MODE-006**: When switching from tactical mode to status mode and back to tactical mode, the system shall restore prior tactical camera orbit azimuth, polar angle, and zoom radius.
 - [ ] **PRESENT-MODE-007**: Tactical camera-orbit persistence for mode switching shall use shared presentation interaction state and shall not be reset by tactical component remount lifecycle.
 - [ ] **PRESENT-MODE-008**: In narrow/mobile viewports, the system shall stack command panel and active projection vertically with command panel rendered above the projection pane.
+- [ ] **PRESENT-MODE-009**: The projection-mode switcher shall include debug view selection alongside tactical and status modes.
+- [ ] **PRESENT-MODE-010**: In development mode, the projection-mode switcher shall include LLM debug view selection alongside tactical, status, and simulation debug modes.
 
 ## LLM Settings Controls and Persistence
 
@@ -108,10 +124,11 @@
 - [ ] **PRESENT-SET-005B**: Empty key input and unchanged masked placeholder values shall not overwrite persisted API key value.
 - [ ] **PRESENT-SET-005C**: Browser autofill values for key input shall be treated as explicit replacement only when user triggers save action.
 - [ ] **PRESENT-SET-006**: The system shall persist provider/model/API key settings under one serialized localStorage object key and shall not split persistence across multiple keys.
-- [ ] **PRESENT-SET-007**: Where active tab is not writer-lock owner, the system shall render settings controls read-only and block local edits from mutating in-memory settings draft.
-- [ ] **PRESENT-SET-008**: If writer ownership is lost before or during settings save, then the system shall reject save and render read-only operational notice.
-- [ ] **PRESENT-SET-008A**: If writer ownership is lost mid-interaction, then local edits shall remain as unsaved draft and settings save shall stay blocked until ownership is reacquired.
-- [ ] **PRESENT-SET-008B**: Ownership-loss/read-only notices shall remain visible when Settings accordion is collapsed.
+- [ ] **PRESENT-SET-007**: The system shall allow settings edits and save actions from any active tab without writer-lock ownership gating.
+- [ ] **PRESENT-SET-008**: On save action, the system shall persist the active tab's provider/model/API key settings payload directly to localStorage.
+- [ ] **PRESENT-SET-008A**: For concurrent cross-tab settings saves, the most recent successful localStorage write shall define persisted settings state.
+- [ ] **PRESENT-SET-008B**: The system shall not render read-only or ownership-loss notices for settings controls.
+- [ ] **PRESENT-SET-008C**: The system shall not render `Claim writer lock` controls in the settings UI.
 - [ ] **PRESENT-SET-009**: If owner tab has unsaved local settings edits, then incoming storage-event settings updates shall not overwrite local draft until user saves or resets.
 - [ ] **PRESENT-SET-010**: At command submit, the system shall capture an immutable validated settings snapshot before applying pending storage-event updates, and planning for that turn shall use only the captured snapshot.
 - [ ] **PRESENT-SET-010A**: Where unsaved local settings draft exists, submit-time snapshot capture shall use draft values even when Settings accordion is collapsed.

@@ -18,6 +18,7 @@ Design priorities:
 
 Iteration 1 executes in browser runtime with fixed-step simulation progression decoupled from render frame updates. This segment may run on the main thread or a dedicated worker, but deterministic tick semantics are invariant across placement.
 Under browser resource pressure, fixed-step tick determinism is prioritized and render frames may be dropped before simulation tick semantics are altered.
+Entity state is represented as an ECS world using bitECS. Turn execution advances world time and runs simulation systems in deterministic order.
 
 ## Scope and Boundaries
 
@@ -84,9 +85,19 @@ Action apply rules:
 
 If all action applies succeed:
 - advance simulation clock by one round
+- advance ECS world time by configured tick increment (one minute in current policy)
+- run configured ECS systems in stable order
 - finalize derived subsystem updates
 - emit state deltas and event log entries
 - commit transaction and publish new canonical snapshot
+
+### ECS World Bootstrap
+
+At simulation startup, the engine creates ECS entities for simulation bodies (star, planets, ship) and attaches position/velocity component state required by movement systems.
+
+Initial ECS systems include:
+- **Crewed-system ship update step**: applies crewed-system settings to ship entity components at the start of each tick
+- **Movement system**: updates position from velocity for entities with both position and velocity components.
 
 If any non-recoverable execution fault occurs:
 - roll back all staged mutations
