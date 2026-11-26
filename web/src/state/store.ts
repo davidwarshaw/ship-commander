@@ -1,11 +1,15 @@
 import { create } from "zustand";
 import { processTurnTS } from "../core/crewCommandLoop";
-import { createSimulationRuntime } from "../core/simulationEcs";
+import {
+  EcsDebugSnapshot,
+  SystemDebugSnapshot,
+  createSimulationRuntime,
+} from "../core/simulationEcs";
 import { LLMDebugEvent, PlanningSettings, TurnInput } from "../core/types";
 import { getOrderTestScript } from "../testing/orderScriptCatalog";
 
 type LogEntry = { id: string; text: string };
-type ViewMode = "tactical" | "status" | "debug" | "llm-debug";
+type ViewMode = "tactical" | "status" | "ecs-debug" | "systems-debug" | "llm-debug";
 type ShipPosition = { x: number; y: number; z: number };
 type TacticalCameraOrbit = { azimuth: number; polar: number; radius: number };
 type StatusCameraOrbit = { azimuth: number; polar: number; radius: number };
@@ -29,6 +33,8 @@ type CommanderState = {
   statusCameraOrbit: StatusCameraOrbit;
   shipHeadingRadians: number;
   shipSpeed: number;
+  ecsDebugSnapshot: EcsDebugSnapshot;
+  systemDebugSnapshot: SystemDebugSnapshot;
   llmSettings: PlanningSettings;
   apiKeyInput: string;
   apiKeyEdited: boolean;
@@ -123,6 +129,8 @@ const simulationRuntime = createSimulationRuntime({
   initialShipSpeed: DEFAULT_SHIP_SPEED,
   initialSimTick: 0,
 });
+const initialEcsDebugSnapshot = simulationRuntime.getEcsDebugSnapshot();
+const initialSystemDebugSnapshot = simulationRuntime.getSystemDebugSnapshot();
 
 export const useCommanderStore = create<CommanderState>((set, get) => ({
   sessionTabId: makeTabId(),
@@ -155,6 +163,8 @@ export const useCommanderStore = create<CommanderState>((set, get) => ({
   statusCameraOrbit: { ...DEFAULT_STATUS_CAMERA_ORBIT },
   shipHeadingRadians: DEFAULT_SHIP_HEADING_RADIANS,
   shipSpeed: DEFAULT_SHIP_SPEED,
+  ecsDebugSnapshot: initialEcsDebugSnapshot,
+  systemDebugSnapshot: initialSystemDebugSnapshot,
   llmSettings: { ...DEFAULT_LLM_SETTINGS },
   apiKeyInput: "",
   apiKeyEdited: false,
@@ -323,6 +333,8 @@ export const useCommanderStore = create<CommanderState>((set, get) => ({
       simulationTimeMinutes: tickSnapshot.worldTimeMinutes,
       projectionSnapshotTick: state.simTick + TICK_INCREMENT_MINUTES,
       staleProjection: false,
+      ecsDebugSnapshot: simulationRuntime.getEcsDebugSnapshot(),
+      systemDebugSnapshot: simulationRuntime.getSystemDebugSnapshot(),
     }));
   },
   runDevOrderTestScript: async (scriptId = "smoke-orders") => {

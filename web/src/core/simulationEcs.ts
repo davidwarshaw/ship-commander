@@ -1,6 +1,11 @@
 import { addComponent, addEntity, createWorld, query } from "bitecs";
 import { getBridgeCrewDefinition } from "../crew/crewCatalog";
-import { CrewedSystem, HelmSystem, createDefaultCrewedSystems } from "./crewSystems";
+import {
+  CrewedSystem,
+  CrewedSystemDebugSnapshot,
+  HelmSystem,
+  createDefaultCrewedSystems,
+} from "./crewSystems";
 import { getSolarSystemDefinition } from "../tactical/solarSystemCatalog";
 
 type Vector3 = { x: number; y: number; z: number };
@@ -21,6 +26,28 @@ type SimulationTickSnapshot = {
 
 type SimulationRuntime = {
   advanceTick: (tickIncrementMinutes: number) => SimulationTickSnapshot;
+  getEcsDebugSnapshot: () => EcsDebugSnapshot;
+  getSystemDebugSnapshot: () => SystemDebugSnapshot;
+};
+
+export type EcsComponentDebugSnapshot = {
+  componentName: string;
+  data: Record<string, number>;
+};
+
+export type EcsEntityDebugSnapshot = {
+  entityId: number;
+  label: string;
+  entityType: "star" | "planet" | "ship";
+  components: EcsComponentDebugSnapshot[];
+};
+
+export type EcsDebugSnapshot = {
+  entities: EcsEntityDebugSnapshot[];
+};
+
+export type SystemDebugSnapshot = {
+  systems: CrewedSystemDebugSnapshot[];
 };
 
 const Position = {
@@ -77,6 +104,21 @@ function applyCrewedSystemsToShip(
   setVector(Velocity, ship, shipState.velocity);
 }
 
+function componentVectorDebugSnapshot(
+  componentName: string,
+  component: { x: number[]; y: number[]; z: number[] },
+  entity: number,
+): EcsComponentDebugSnapshot {
+  return {
+    componentName,
+    data: {
+      x: component.x[entity],
+      y: component.y[entity],
+      z: component.z[entity],
+    },
+  };
+}
+
 function planetKinematics(systemId: string, simTick: number) {
   const definition = getSolarSystemDefinition(systemId);
   if (!definition) return [];
@@ -119,19 +161,33 @@ export function createSimulationRuntime(
     );
   }
 
+  const entityLabels = new Map<number, { label: string; entityType: "star" | "planet" | "ship" }>();
+
+  const starDefinition = getSolarSystemDefinition(config.activeSystemId)?.star;
   const star = addEntity(world);
   addComponent(world, star, Position);
   addComponent(world, star, Velocity);
   setVector(Position, star, { x: 0, y: 0, z: 0 });
   setVector(Velocity, star, { x: 0, y: 0, z: 0 });
+  entityLabels.set(star, {
+    label: starDefinition?.name ?? "Primary Star",
+    entityType: "star",
+  });
 
   const planets = planetKinematics(config.activeSystemId, config.initialSimTick);
-  for (const planet of planets) {
+  const planetDefinitions =
+    getSolarSystemDefinition(config.activeSystemId)?.planets ?? [];
+  for (const [index, planet] of planets.entries()) {
     const planetEntity = addEntity(world);
     addComponent(world, planetEntity, Position);
     addComponent(world, planetEntity, Velocity);
     setVector(Position, planetEntity, planet.position);
     setVector(Velocity, planetEntity, planet.velocity);
+    const definition = planetDefinitions[index];
+    entityLabels.set(planetEntity, {
+      label: definition?.name ?? `Planet ${index + 1}`,
+      entityType: "planet",
+    });
   }
 
   const ship = addEntity(world);
@@ -142,6 +198,23 @@ export function createSimulationRuntime(
     x: Math.cos(config.initialShipHeadingRadians) * config.initialShipSpeed,
     y: 0,
     z: Math.sin(config.initialShipHeadingRadians) * config.initialShipSpeed,
+  });
+  entityLabels.set(ship, { label: "Ship", entityType: "ship" });
+
+  const getEcsDebugSnapshot = (): EcsDebugSnapshot => ({
+    entities: [...entityLabels.entries()].map(([entityId, meta]) => ({
+      entityId,
+      label: meta.label,
+      entityType: meta.entityType,
+      components: [
+        componentVectorDebugSnapshot("Position", Position, entityId),
+        componentVectorDebugSnapshot("Velocity", Velocity, entityId),
+      ],
+    })),
+  });
+
+  const getSystemDebugSnapshot = (): SystemDebugSnapshot => ({
+    systems: crewedSystems.map((system) => system.getDebugSnapshot()),
   });
 
   return {
@@ -163,5 +236,7 @@ export function createSimulationRuntime(
         },
       };
     },
+    getEcsDebugSnapshot,
+    getSystemDebugSnapshot,
   };
 }

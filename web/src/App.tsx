@@ -13,8 +13,9 @@ import {
 import { FormEvent, useEffect, useState } from "react";
 import { CrewInfo } from "./components/CrewInfo";
 import { CrewTag } from "./components/CrewTag";
+import { DebugEcsView } from "./debug/DebugEcsView";
 import { DebugLLMView } from "./debug/DebugLLMView";
-import { DebugSimulationView } from "./debug/DebugSimulationView";
+import { DebugSystemsView } from "./debug/DebugSystemsView";
 import {
   getBridgeCrewDefinition,
   resolveCrewMemberBySpeakerToken,
@@ -23,7 +24,7 @@ import { useCommanderStore } from "./state/store";
 import { StatusShipView } from "./status/StatusShipView";
 import { TacticalCanvas } from "./tactical/TacticalCanvas";
 
-// @spec PRESENT-CHAKRA-006, PRESENT-CHAKRA-008, PRESENT-CHAKRA-009, PRESENT-SET-001, PRESENT-SET-008A, PRESENT-SET-008C, PRESENT-BIND-009, PRESENT-BIND-010, PRESENT-LOG-004, PRESENT-LOG-005, PRESENT-LOG-006, PRESENT-LOG-007, PRESENT-LOG-008, PRESENT-LOG-009, PRESENT-MODE-009, PRESENT-MODE-010, PRESENT-DBG-001, PRESENT-DBG-005, PRESENT-DBG-009
+// @spec PRESENT-CHAKRA-006, PRESENT-CHAKRA-008, PRESENT-CHAKRA-009, PRESENT-SET-001, PRESENT-SET-008A, PRESENT-SET-008C, PRESENT-BIND-009, PRESENT-BIND-010, PRESENT-LOG-004, PRESENT-LOG-005, PRESENT-LOG-006, PRESENT-LOG-007, PRESENT-LOG-008, PRESENT-LOG-009, PRESENT-MODE-009, PRESENT-MODE-010, PRESENT-DBG-001, PRESENT-DBG-005, PRESENT-DBG-009, PRESENT-DBG-012
 export function App() {
   const [commandDraft, setCommandDraft] = useState("");
   const viewMode = useCommanderStore((s) => s.viewMode);
@@ -282,11 +283,23 @@ export function App() {
           {showDebugView ? (
             <Button
               className={
-                viewMode === "debug" ? "action-btn selected" : "action-btn"
+                viewMode === "ecs-debug" ? "action-btn selected" : "action-btn"
               }
-              onClick={() => setViewMode("debug")}
+              onClick={() => setViewMode("ecs-debug")}
             >
-              Debug
+              ECS Debug
+            </Button>
+          ) : null}
+          {showDebugView ? (
+            <Button
+              className={
+                viewMode === "systems-debug"
+                  ? "action-btn selected"
+                  : "action-btn"
+              }
+              onClick={() => setViewMode("systems-debug")}
+            >
+              System Debug
             </Button>
           ) : null}
           {showDebugView ? (
@@ -304,10 +317,14 @@ export function App() {
           <TacticalCanvas />
         ) : viewMode === "status" ? (
           <StatusShipView />
-        ) : viewMode === "debug" ? (
-          <DebugSimulationView />
-        ) : (
+        ) : viewMode === "ecs-debug" ? (
+          <DebugEcsView />
+        ) : viewMode === "systems-debug" ? (
+          <DebugSystemsView />
+        ) : viewMode === "llm-debug" ? (
           <DebugLLMView />
+        ) : (
+          <TacticalCanvas />
         )}
       </Box>
     </Box>

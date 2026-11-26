@@ -10,6 +10,13 @@ export type ShipEntityState = {
   velocity: { x: number; y: number; z: number };
 };
 
+export type CrewedSystemDebugSnapshot = {
+  systemName: string;
+  assignedCrew: string;
+  actions: SystemActionDescriptor[];
+  internalState: Record<string, unknown>;
+};
+
 // @spec CREWCMD-SYS-001, CREWCMD-SYS-002, CREWCMD-SYS-003, CREWCMD-SYS-005, CREWCMD-SYS-006
 export abstract class CrewedSystem {
   private crewMemberInCharge: BridgeCrewMember | null = null;
@@ -52,6 +59,19 @@ export abstract class CrewedSystem {
   updateShipEntity(ship: ShipEntityState): void {
     void ship;
   }
+
+  getInternalDebugState(): Record<string, unknown> {
+    return {};
+  }
+
+  getDebugSnapshot(): CrewedSystemDebugSnapshot {
+    return {
+      systemName: this.getSystemName(),
+      assignedCrew: this.formatAssignedCrewMember(),
+      actions: this.listActions(),
+      internalState: this.getInternalDebugState(),
+    };
+  }
 }
 
 // @spec CREWCMD-SYS-004
@@ -91,6 +111,14 @@ export class HelmSystem extends CrewedSystem {
     ship.velocity.x = Math.cos(this.desiredHeadingRadians) * this.desiredSpeed;
     ship.velocity.y = 0;
     ship.velocity.z = Math.sin(this.desiredHeadingRadians) * this.desiredSpeed;
+  }
+
+  getInternalDebugState(): Record<string, unknown> {
+    return {
+      mode: this.mode,
+      desiredHeadingRadians: this.desiredHeadingRadians,
+      desiredSpeed: this.desiredSpeed,
+    };
   }
 }
 

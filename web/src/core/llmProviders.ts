@@ -10,6 +10,7 @@ export type ProviderGenerationRequest = {
 export type ProviderDebugPayload = {
   systemPrompt?: string;
   messages?: Array<{ role: string; content: string }>;
+  requestBody?: unknown;
   responseText?: string;
   responseStatus?: number;
   responseBody?: unknown;
@@ -190,9 +191,24 @@ const anthropicClaudeProvider: LLMProviderAdapter = {
   supportedModels: ["claude-sonnet-4-6"],
   generatePlans: async ({ captainMessage, modelId, apiKey, systemPrompt }) => {
     const requestMessages = [{ role: "user", content: `Captain command: ${captainMessage}` }];
+    const requestBody = {
+      model: modelId,
+      max_tokens: ANTHROPIC_MAX_TOKENS,
+      system: systemPrompt,
+      tools: [
+        {
+          name: CREW_PLAN_TOOL_NAME,
+          description: "Structured CrewPlan output",
+          input_schema: CREW_PLAN_TOOL_SCHEMA
+        }
+      ],
+      tool_choice: { type: "tool" as const, name: CREW_PLAN_TOOL_NAME },
+      messages: requestMessages
+    };
     const requestDebug: ProviderDebugPayload = {
       systemPrompt,
-      messages: requestMessages
+      messages: requestMessages,
+      requestBody
     };
     const parsePayload = (
       payload: { stop_reason?: string; content?: Array<{ type?: string; text?: string; name?: string; input?: unknown }> },
@@ -239,18 +255,8 @@ const anthropicClaudeProvider: LLMProviderAdapter = {
           "anthropic-dangerous-direct-browser-access": "true"
         },
         body: JSON.stringify({
-          model: modelId,
-          max_tokens: ANTHROPIC_MAX_TOKENS,
-          system: systemPrompt,
-          tools: [
-            {
-              name: CREW_PLAN_TOOL_NAME,
-              description: "Structured CrewPlan output",
-              input_schema: CREW_PLAN_TOOL_SCHEMA
-            }
-          ],
-          tool_choice: { type: "tool", name: CREW_PLAN_TOOL_NAME },
-          messages: requestMessages
+          ...requestBody,
+          system: systemPrompt
         }),
         signal: controller.signal
       });

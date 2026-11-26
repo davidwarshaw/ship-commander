@@ -140,7 +140,11 @@ class TestPhase5BrowserStack(unittest.TestCase):
         self.assertIn("processTurnTS", store_source)
         self.assertIn("createSimulationRuntime", store_source)
         self.assertIn("advanceTick", store_source)
+        self.assertIn("ecsDebugSnapshot", store_source)
+        self.assertIn("systemDebugSnapshot", store_source)
         self.assertIn("applyCrewedSystemsToShip", simulation_ecs_source)
+        self.assertIn("getEcsDebugSnapshot", simulation_ecs_source)
+        self.assertIn("getSystemDebugSnapshot", simulation_ecs_source)
         self.assertNotIn("setInterval", store_source)
 
     # @spec CREWCMD-SYS-001, CREWCMD-SYS-002, CREWCMD-SYS-003, CREWCMD-SYS-004, CREWCMD-SYS-005, CREWCMD-SYS-006
@@ -203,30 +207,36 @@ class TestPhase5BrowserStack(unittest.TestCase):
         self.assertIn("setViewMode", app_source)
         self.assertIn("Tactical", app_source)
         self.assertIn("Status", app_source)
-        self.assertIn("Debug", app_source)
+        self.assertIn("ECS Debug", app_source)
+        self.assertIn("System Debug", app_source)
         self.assertIn("LLM Debug", app_source)
         self.assertIn("import.meta.env.DEV", app_source)
         self.assertIn("view-mode-toggle", app_source)
         self.assertIn("Run test script", app_source)
 
-    # @spec PRESENT-DBG-001, PRESENT-DBG-002, PRESENT-DBG-003, PRESENT-DBG-004, PRESENT-DBG-005, PRESENT-DBG-006, PRESENT-DBG-007, PRESENT-DBG-008
-    def test_debug_simulation_view_renders_motion_and_orbit_diagnostics(self) -> None:
+    # @spec PRESENT-DBG-001, PRESENT-DBG-002, PRESENT-DBG-003, PRESENT-DBG-004, PRESENT-DBG-005, PRESENT-DBG-006, PRESENT-DBG-007, PRESENT-DBG-008, PRESENT-DBG-012, PRESENT-DBG-013, PRESENT-DBG-014
+    def test_debug_views_render_ecs_system_and_llm_diagnostics(self) -> None:
         app_source = (REPO_ROOT / "web" / "src" / "App.tsx").read_text()
-        debug_source = (REPO_ROOT / "web" / "src" / "debug" / "DebugSimulationView.tsx").read_text()
+        ecs_debug_source = (REPO_ROOT / "web" / "src" / "debug" / "DebugEcsView.tsx").read_text()
+        systems_debug_source = (REPO_ROOT / "web" / "src" / "debug" / "DebugSystemsView.tsx").read_text()
         llm_debug_source = (REPO_ROOT / "web" / "src" / "debug" / "DebugLLMView.tsx").read_text()
-        self.assertIn("DebugSimulationView", app_source)
+        self.assertIn("DebugEcsView", app_source)
+        self.assertIn("DebugSystemsView", app_source)
         self.assertIn("DebugLLMView", app_source)
-        self.assertIn("position", debug_source)
-        self.assertIn("velocity", debug_source)
-        self.assertIn("speed", debug_source)
-        self.assertIn("in orbit", debug_source)
-        self.assertIn("not in orbit", debug_source)
-        self.assertIn("getSolarSystemDefinition", debug_source)
+        self.assertIn("ecsDebugSnapshot", ecs_debug_source)
+        self.assertIn("entities", ecs_debug_source)
+        self.assertIn("components", ecs_debug_source)
+        self.assertIn("Accordion.Root", ecs_debug_source)
+        self.assertIn("systemDebugSnapshot", systems_debug_source)
+        self.assertIn("assignedCrew", systems_debug_source)
+        self.assertIn("actions", systems_debug_source)
+        self.assertIn("internalState", systems_debug_source)
         self.assertIn("llmDebugLog", llm_debug_source)
         self.assertIn("entries", llm_debug_source)
         self.assertIn("entry.phase", llm_debug_source)
         self.assertIn("systemPrompt", llm_debug_source)
         self.assertIn("messages", llm_debug_source)
+        self.assertIn("requestBody", llm_debug_source)
         self.assertIn("responseText", llm_debug_source)
         self.assertIn("tryFormatEmbeddedJson", llm_debug_source)
 
@@ -529,7 +539,8 @@ class TestPhase5BrowserStack(unittest.TestCase):
         self.assertIn("statusCameraOrbit", store_source)
         self.assertIn("setStatusCameraOrbit", store_source)
         self.assertIn("resetStatusCameraOrbit", store_source)
-        self.assertIn('"debug"', store_source)
+        self.assertIn('"ecs-debug"', store_source)
+        self.assertIn('"systems-debug"', store_source)
 
 
 if __name__ == "__main__":

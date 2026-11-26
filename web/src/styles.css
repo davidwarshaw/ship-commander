@@ -224,21 +224,34 @@ body {
   margin-bottom: 6px;
 }
 
-.debug-simulation-view {
+.debug-ecs-view,
+.debug-systems-view {
   padding: 16px;
   overflow: auto;
 }
 
-.debug-simulation-list {
+.debug-ecs-list,
+.debug-systems-list {
   margin-top: 10px;
   gap: 8px;
 }
 
-.debug-simulation-list li {
+.debug-ecs-list [data-part="item-content"],
+.debug-systems-list [data-part="item-content"] {
   border: 1px solid #2f2f2f;
   border-radius: 6px;
-  padding: 8px;
+  padding: 6px 8px;
   background: rgba(255, 255, 255, 0.02);
+}
+
+.debug-ecs-component-list {
+  gap: 6px;
+}
+
+.debug-systems-state {
+  margin-top: 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .debug-llm-view {

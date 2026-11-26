@@ -73,11 +73,13 @@ export function DebugLLMView() {
                         typeof payload.responseText === "string"
                           ? payload.responseText
                           : null;
+                      const requestBody = payload.requestBody;
                       const responseBody = payload.responseBody;
 
                       if (
                         !systemPrompt &&
                         !messages &&
+                        !requestBody &&
                         !responseText &&
                         !responseBody
                       ) {
@@ -90,6 +92,10 @@ export function DebugLLMView() {
                       const formattedResponseText = responseText
                         ? tryFormatEmbeddedJson(responseText)
                         : "(none)";
+                      const formattedRequestBody =
+                        requestBody !== undefined
+                          ? formatUnknown(requestBody)
+                          : "(none)";
                       const formattedResponseBody =
                         responseBody !== undefined
                           ? formatUnknown(responseBody)
@@ -98,6 +104,7 @@ export function DebugLLMView() {
                       return [
                         `systemPrompt:\n${systemPrompt ?? "(none)"}`,
                         `messages:\n${formattedMessages}`,
+                        `requestBody:\n${formattedRequestBody}`,
                         `responseText:\n${formattedResponseText}`,
                         `responseBody:\n${formattedResponseBody}`,
                       ].join("\n\n");

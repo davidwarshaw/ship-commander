@@ -82,17 +82,20 @@
 
 ## Debug Simulation Projection
 
-- [ ] **PRESENT-DBG-001**: The system shall render a debug-only simulation view mode parallel to tactical and status views.
-- [ ] **PRESENT-DBG-002**: The debug view shall list simulated bodies and render per-body position vector, velocity vector, and speed magnitude.
-- [ ] **PRESENT-DBG-003**: The debug view shall render orbit classification (`in orbit` or `not in orbit`) and include orbit metadata when the body is in orbit.
-- [ ] **PRESENT-DBG-004**: Debug movement/orbit diagnostics shall be derived from canonical/state-derived movement inputs consistent with tactical projection state.
-- [ ] **PRESENT-DBG-005**: The system shall render a debug-only LLM trace view mode parallel to tactical, status, and simulation debug views.
+- [ ] **PRESENT-DBG-001**: The system shall render an ECS debug view mode parallel to tactical and status views.
+- [ ] **PRESENT-DBG-002**: The ECS debug view shall list all entities and support expanding each entity entry for details.
+- [ ] **PRESENT-DBG-003**: Within an expanded ECS entity, the debug view shall list expandable component sections and render each component's current values.
+- [ ] **PRESENT-DBG-004**: ECS debug values shall be derived from canonical simulation runtime state consistent with tactical projection state.
+- [ ] **PRESENT-DBG-005**: The system shall render a debug-only LLM trace view mode parallel to tactical, status, ECS debug, and systems debug views.
 - [ ] **PRESENT-DBG-006**: The LLM debug view shall list per-turn provider call traces including provider id, model id, phase (`request`, `response`, or `error`), and timestamp.
 - [ ] **PRESENT-DBG-007**: The LLM debug view shall render response/error messages from LLM generation attempts without exposing API key material.
-- [ ] **PRESENT-DBG-008**: The LLM debug view shall render `systemPrompt`, `messages`, and `response` payload fields for provider traces and shall attempt pretty-print formatting for embedded JSON response text.
+- [ ] **PRESENT-DBG-008**: The LLM debug view shall render `systemPrompt`, `messages`, `requestBody`, `responseText`, and `responseBody` payload fields for provider traces and shall attempt pretty-print formatting for embedded JSON response text.
 - [ ] **PRESENT-DBG-009**: In development mode, the command pane shall render a debug-only `Run test script` control that executes a local JSON captain-order script.
 - [ ] **PRESENT-DBG-010**: Script-run execution shall submit each scripted order sequentially, wait for step completion, and evaluate per-step assertions against updated command-log/system-state conditions.
 - [ ] **PRESENT-DBG-011**: Script-run execution shall use the active configured LLM provider/model settings and shall not override scripted turns to a mock provider.
+- [ ] **PRESENT-DBG-012**: The system shall render a systems debug view mode parallel to tactical and status views.
+- [ ] **PRESENT-DBG-013**: The systems debug view shall list all crewed systems and support expanding each system entry for details.
+- [ ] **PRESENT-DBG-014**: Within an expanded systems entry, the debug view shall render assigned crew identity, allowed action descriptors, and internal state snapshot.
 
 ## Mode Toggle and Shared Interaction State
 
@@ -105,7 +108,7 @@
 - [ ] **PRESENT-MODE-007**: Tactical camera-orbit persistence for mode switching shall use shared presentation interaction state and shall not be reset by tactical component remount lifecycle.
 - [ ] **PRESENT-MODE-008**: In narrow/mobile viewports, the system shall stack command panel and active projection vertically with command panel rendered above the projection pane.
 - [ ] **PRESENT-MODE-009**: The projection-mode switcher shall include debug view selection alongside tactical and status modes.
-- [ ] **PRESENT-MODE-010**: In development mode, the projection-mode switcher shall include LLM debug view selection alongside tactical, status, and simulation debug modes.
+- [ ] **PRESENT-MODE-010**: In development mode, the projection-mode switcher shall include ECS debug, systems debug, and LLM debug selections alongside tactical and status modes.
 
 ## LLM Settings Controls and Persistence
 

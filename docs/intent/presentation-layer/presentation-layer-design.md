@@ -164,23 +164,25 @@ Status projection:
   - zoom framing where ship almost fills viewport
 - maintain consistent threshold bands and labels across turns
 
-Debug simulation projection:
-- render a debug-only simulation state view parallel to tactical/status mode surfaces
-- list simulated bodies with movement diagnostics including:
-  - current position vector
-  - current velocity vector and speed magnitude
-  - orbit classification (`in orbit`/`not in orbit`) and orbit metadata when orbiting
-  - simulation-frame values needed to reason about movement/orbit behavior (for example body type and active system context)
-- derive debug values from the same canonical/state-derived movement inputs used by tactical projection so diagnostics reflect rendered simulation state
+Debug ECS projection:
+- render a debug-only ECS state view parallel to tactical/status mode surfaces
+- list all ECS entities and allow expanding each entity for details
+- for each entity, list expandable component sections showing current component values
+- derive ECS debug values from canonical simulation runtime state so diagnostics reflect rendered simulation state
+
+Debug crewed-systems projection:
+- render a debug-only systems state view parallel to tactical/status mode surfaces
+- list all crewed systems and allow expanding each system for details
+- for each crewed system, render assigned crew identity, allowed action descriptors, and system internal debug state snapshot
 
 Debug LLM projection:
-- render a debug-only LLM trace view parallel to tactical/status/simulation-debug mode surfaces
+- render a debug-only LLM trace view parallel to tactical/status/ECS-debug/systems-debug mode surfaces
 - list LLM generation call entries in reverse-chronological order with:
   - timestamp
   - provider id and model id
   - phase (`request`, `response`, `error`)
   - provider/request outcome message payload text
-  - provider payload sections for `systemPrompt`, `messages`, `responseText`, and `responseBody`
+  - provider payload sections for `systemPrompt`, `messages`, `requestBody`, `responseText`, and `responseBody`
 - include provider failure details (for example `MODEL_SERVICE_UNREACHABLE`) when present
 - attempt JSON pretty-print formatting for embedded response text while preserving original text when parse fails
 - exclude API key material from all LLM debug trace entries
@@ -203,7 +205,7 @@ Mode behavior:
 - mode switch does not trigger reclassification or recomposition of turn outcomes
 - stale-projection mode toggles remain allowed, with visible stale warning state
 - in narrow/mobile viewports, command panel and active projection view stack vertically with command panel first
-- in development mode, mode switcher includes both simulation debug and LLM debug selections
+- in development mode, mode switcher includes ECS debug, systems debug, and LLM debug selections
 
 Shared interaction state includes:
 - selected entity or subsystem
